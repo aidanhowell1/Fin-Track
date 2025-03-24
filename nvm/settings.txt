@@ -1,0 +1,2 @@
+root: C:\Users\aidan\Downloads\Fintrack-main\Fintrack-main\nvm
+path: C:\nvm4w\nodejs

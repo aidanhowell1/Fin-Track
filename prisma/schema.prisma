@@ -1,0 +1,248 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+  binaryTargets   = ["native"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  schemas   = ["fintrack_schema"]
+}
+
+model User {
+  id               String        @id @default(cuid())
+  email            String        @unique
+  password         String
+  firstName        String?
+  lastName         String?
+  name             String?
+  avatar           String?
+  currency         String        @default("USD")
+  timezone         String        @default("UTC")
+  language         String        @default("en")
+  theme            String        @default("system")
+  twoFactorEnabled Boolean       @default(false)
+  notifyBudget     Boolean       @default(true)
+  notifyEmail      Boolean       @default(true)
+  notifyInApp      Boolean       @default(true)
+  notifyThreshold  Float         @default(90.0)
+  totalIncome      Decimal       @default(0) @db.Decimal(10, 2)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  auditLogs        AuditLog[]
+  budgets          Budget[]
+  categories       Category[]
+  goals            Goal[]
+  tags             Tag[]
+  transactions     Transaction[]
+  moodLogs         MoodLog[]
+
+  @@map("users")
+  @@schema("fintrack_schema")
+}
+
+model Transaction {
+  id               String             @id @default(cuid())
+  amount           Decimal            @db.Decimal(10, 2)
+  type             TransactionType
+  date             DateTime
+  description      String             @db.VarChar(255)
+  notes            String?
+  hash             String?            @unique
+  status           TransactionStatus  @default(COMPLETED)
+  isRecurring      Boolean            @default(false)
+  recurringPeriod  RecurringPeriod?
+  nextDueDate      DateTime?
+  categoryId       String
+  userId           String
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  goalTransactions GoalTransaction[]
+  category         Category           @relation(fields: [categoryId], references: [id])
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  splits           TransactionSplit[]
+  moodLogs         MoodLog[]
+  tags             Tag[]              @relation("TagToTransaction")
+
+  @@index([userId, date])
+  @@schema("fintrack_schema")
+}
+
+model Category {
+  id               String             @id @default(cuid())
+  name             String             @unique
+  userId           String
+  Budget           Budget[]
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Goal             Goal[]
+  transactions     Transaction[]
+  TransactionSplit TransactionSplit[]
+
+  @@schema("fintrack_schema")
+}
+
+model Tag {
+  id           String        @id @default(cuid())
+  name         String        @unique
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[] @relation("TagToTransaction")
+
+  @@schema("fintrack_schema")
+}
+
+model MoodLog {
+  id            String       @id @default(cuid())
+  mood          MoodType
+  intensity     Int          @default(5)
+  notes         String?
+  date          DateTime     @default(now())
+  userId        String?
+  transactionId String?
+  transaction   Transaction? @relation(fields: [transactionId], references: [id])
+  user          User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("mood_logs")
+  @@schema("fintrack_schema")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  tableName String
+  recordId  String
+  oldValue  Json?
+  newValue  Json?
+  userId    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@schema("fintrack_schema")
+}
+
+model Goal {
+  id            String            @id @default(cuid())
+  name          String
+  targetAmount  Decimal           @db.Decimal(10, 2)
+  currentAmount Decimal           @default(0) @db.Decimal(10, 2)
+  deadline      DateTime?
+  priority      GoalPriority      @default(MEDIUM)
+  status        GoalStatus        @default(ACTIVE)
+  categoryId    String?
+  userId        String
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  category      Category?         @relation(fields: [categoryId], references: [id])
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions  GoalTransaction[]
+
+  @@schema("fintrack_schema")
+}
+
+model GoalTransaction {
+  id            String      @id @default(cuid())
+  amount        Decimal     @db.Decimal(10, 2)
+  goalId        String
+  transactionId String
+  createdAt     DateTime    @default(now())
+  goal          Goal        @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  @@schema("fintrack_schema")
+}
+
+model TransactionSplit {
+  id            String      @id @default(cuid())
+  amount        Decimal     @db.Decimal(10, 2)
+  notes         String?
+  transactionId String
+  categoryId    String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  category      Category    @relation(fields: [categoryId], references: [id])
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  @@schema("fintrack_schema")
+}
+
+model Budget {
+  id             String       @id @default(cuid())
+  monthlyLimit   Decimal      @db.Decimal(10, 2)
+  weeklyLimit    Decimal?     @db.Decimal(10, 2)
+  startDate      DateTime
+  endDate        DateTime
+  isRecurring    Boolean      @default(false)
+  periodType     BudgetPeriod @default(MONTHLY)
+  alertThreshold Float        @default(80.0)
+  categoryId     String
+  userId         String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  category       Category     @relation(fields: [categoryId], references: [id])
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@schema("fintrack_schema")
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+
+  @@schema("fintrack_schema")
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  DELETED
+
+  @@schema("fintrack_schema")
+}
+
+enum RecurringPeriod {
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+
+  @@schema("fintrack_schema")
+}
+
+enum MoodType {
+  VERY_HAPPY
+  HAPPY
+  NEUTRAL
+  SAD
+  STRESSED
+  ANXIOUS
+  BORED
+
+  @@schema("fintrack_schema")
+}
+
+enum GoalPriority {
+  LOW
+  MEDIUM
+  HIGH
+
+  @@schema("fintrack_schema")
+}
+
+enum GoalStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+
+  @@schema("fintrack_schema")
+}
+
+enum BudgetPeriod {
+  MONTHLY
+  QUARTERLY
+  YEARLY
+
+  @@schema("fintrack_schema")
+}
