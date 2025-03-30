@@ -18,6 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     let decoded;
     try {
       decoded = verifyToken(token);
+	  console.log('Decoded token:', decoded); //test
     } catch (error) {
       console.error('Password API: Token verification failed:', error);
       return res.status(401).json({ error: 'Invalid or expired token' });
