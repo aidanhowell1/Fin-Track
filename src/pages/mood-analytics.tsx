@@ -171,6 +171,13 @@ const MoodAnalytics = () => {
       setAnalyticsData(data);
     } catch (error) {
       console.error('Error fetching mood data:', error);
+	  // Set fallback state to prevent crashes
+	      setAnalyticsData({
+	        timelineData: [],
+	        moodDistribution: {},
+	        spendingCorrelation: {},
+	        dailyEntriesCount: 0,
+	        historicalWeeks: [],
     } finally {
       setLoading(false);
     }
