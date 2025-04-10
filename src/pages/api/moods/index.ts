@@ -38,6 +38,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         console.log('Fetching mood logs with transactions...');
         
         const { today, tomorrow, sevenDaysAgo, thirtyDaysAgo } = getDateRanges();
+		
+		//auth check
+		if(!req.user?.id){
+			console.error('User not authenticated');
+			return res.status(401).json({ error: 'Unauthorized', message: 'User not authenticated' });
+		}
 
         // Get today's entries count
         const todayEntriesCount = await prisma.moodLog.count({
