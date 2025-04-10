@@ -44,9 +44,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			console.error('User not authenticated');
 			return res.status(401).json({ error: 'Unauthorized', message: 'User not authenticated' });
 		}
+		let todayEntriesCount, recentMoodLogs, historicalWeeks;
 
         // Get today's entries count
-        const todayEntriesCount = await prisma.moodLog.count({
+		try{
+        todayEntriesCount = await prisma.moodLog.count({
           where: {
             date: {
               gte: today,
@@ -54,9 +56,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             },
           },
         });
+		console.log('Today entries count:', todayEntriesCount);
+		}
+		catch(error){
+			console.error('Error fetching todayEntriesCount:', error);
+			throw error;
+		}
 
         // Get last 30 days of mood logs with transactions
-        const recentMoodLogs = await prisma.moodLog.findMany({
+		try{
+        recentMoodLogs = await prisma.moodLog.findMany({
           where: {
             date: {
               gte: thirtyDaysAgo,
@@ -80,9 +89,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             },
           },
         });
+		console.log('Recent mood logs:', recentMoodLogs.length);
+		} catch (error) {
+		console.error('Error fetching recentMoodLogs:', error);
+			throw error;
+		}
 
         // Get historical weekly data
-        const historicalWeeks = await prisma.$queryRaw`
+		try{
+        historicalWeeks = await prisma.$queryRaw`
           WITH weeks AS (
             SELECT 
               date_trunc('week', m.date) as week_start,
@@ -101,6 +116,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           )
           SELECT * FROM weeks
         `;
+		console.log('Historical weeks:', historicalWeeks);
+		  } catch (error) {
+		    console.error('Error fetching historicalWeeks:', error);
+		    throw error;
+		  }
 
         console.log(`Retrieved ${recentMoodLogs.length} recent mood logs`);
 
