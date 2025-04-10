@@ -163,6 +163,10 @@ const MoodAnalytics = () => {
   const fetchMoodData = async () => {
     try {
       const response = await fetch('/api/moods');
+	  if(!response.ok){
+		const errorData = await response.json();
+		throw new Error(errorData.message || 'Failed to fetch mood data');
+	  }
       const data = await response.json();
       setAnalyticsData(data);
     } catch (error) {
