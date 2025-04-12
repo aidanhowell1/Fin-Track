@@ -38,7 +38,7 @@ export default async function handler(
 		}
 		const token = authHeader.split(' ')[1];
 	      try {
-	        const decoded = jwt.verify(token, process.env.JWT_SECRET || '59077dae9e9faea6bca7d2155a9c56509c13dcdbc677eb4631069a301f5800a7') as { userId: string };
+	        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'JWT_SECRET') as { userId: string };
 	        userId = decoded.userId;
 	      } catch (err) {
 			const errorLog = logError(err, 'TOKEN_VERIFICATION', { token });
