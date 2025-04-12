@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Component, ReactMode } from 'react';
 import { useRouter } from 'next/router';
 import { Layout } from '@/components/Layout';
 import { Card } from '@/components/ui/card';
@@ -122,7 +122,41 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   }
   return null;
 };
+// Error Boundary Class Component
+interface ErrorBoundaryProps {
+  children: ReactNode;
+}
 
+interface ErrorBoundaryState {
+  hasError: boolean;
+}
+
+class MoodAnalyticsErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  state: ErrorBoundaryState = { hasError: false };
+
+  static getDerivedStateFromError(): ErrorBoundaryState {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('MoodAnalyticsErrorBoundary caught:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <Card className="p-6 text-center space-y-4">
+          <h2 className="text-xl font-semibold text-foreground">Error Loading Mood Analytics</h2>
+          <p className="text-muted-foreground">
+            Something went wrong while loading your mood data. Please try refreshing the page.
+          </p>
+          <Button onClick={() => window.location.reload()}>Refresh</Button>
+        </Card>
+      );
+    }
+    return this.props.children;
+  }
+}
 const MoodAnalytics = () => {
   const router = useRouter();
   const { pathname } = router;
