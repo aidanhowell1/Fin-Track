@@ -224,7 +224,9 @@ const MoodAnalytics = () => {
   // Calculate mood insights
   const calculateInsights = () => {
     const insights: string[] = [];
-    if (analyticsData.timelineData.length > 0) {
+	if (!analyticsData.timelineData || analyticsData.timelineData.length === 0) {
+	    return insights; // Return empty insights if no data
+	  }
       // Most common mood
       const moodCounts = analyticsData.moodDistribution;
       const [mostCommonMood] = Object.entries(moodCounts).sort((a, b) => b[1] - a[1])[0] || [''];
@@ -246,7 +248,7 @@ const MoodAnalytics = () => {
       const recentMoods = analyticsData.timelineData.slice(-7);
       const averageMoodIntensity = recentMoods.reduce((sum, item) => sum + item.intensity, 0) / recentMoods.length;
       insights.push(`Your average mood intensity over the past week is ${averageMoodIntensity.toFixed(1)} out of 10`);
-    }
+	  
     return insights;
   };
 
@@ -367,7 +369,7 @@ const MoodAnalytics = () => {
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart 
-                  data={analyticsData.timelineData.slice(-MAX_DAYS_TO_SHOW)}
+                  data={analyticsData.timelineData.slice(-MAX_DAYS_TO_SHOW) || []}
                   margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -476,7 +478,7 @@ const MoodAnalytics = () => {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-
+			</Card>
             {/* Historical Weekly Data */}
             <div className="mt-6">
               <h3 className="text-lg font-semibold mb-3">Historical Weekly Summary</h3>

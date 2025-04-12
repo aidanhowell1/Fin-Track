@@ -26,6 +26,12 @@ export default async function handler(
       res.setHeader('Allow', ['GET'])
       return res.status(405).end(`Method ${req.method} Not Allowed`)
     }
+	// Get the authenticated user's session
+	    const session = await getServerSession(req, res, authOptions)
+	    if (!session?.user?.id) {
+	      return res.status(401).json({ error: 'Unauthorized: User not authenticated' })
+	    }
+	    const userId = session.user.id
 
     const period = parseInt(req.query.period as string) || 6
     const today = new Date()
@@ -34,6 +40,7 @@ export default async function handler(
     // Get all transactions for the period
     const transactions = await prisma.transaction.findMany({
       where: {
+		userId: userId,
         date: {
           gte: startDate,
         },

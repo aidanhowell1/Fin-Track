@@ -3,6 +3,7 @@ import '../styles/globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { useEffect, useState } from 'react';
 
+// Main App component for Next.js application
 export default function App({ Component, pageProps }: AppProps) {
   const [mounted, setMounted] = useState(false);
 
