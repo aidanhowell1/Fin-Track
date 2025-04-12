@@ -1,11 +1,9 @@
-import { NextApiRequest, NextApiResponse } from 'next'
+import { NextApiResponse } from 'next'
+import { withAuth, AuthenticatedRequest } from '@/lib/withAuth'
 import prisma from '@/lib/prisma'
 import jwt from 'jsonwebtoken'
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export default withAuth(async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   // Helper function for structured error logging
   const logError = (error: any, context: string) => {
     const errorLog = {
@@ -49,11 +47,12 @@ export default async function handler(
 		      return res.status(401).json({ error: 'Unauthorized: User not authenticated', details: errorLog });
 		    }
 
+    // Get the period from query and calculate the startDate using period (in months)
     const period = parseInt(req.query.period as string) || 6
     const today = new Date()
     const startDate = new Date(today.getFullYear(), today.getMonth() - period + 1, 1)
 
-    // Get all transactions for the period
+    // IMPORTANT: Filter transactions by the authenticated user's ID.
     const transactions = await prisma.transaction.findMany({
       where: {
 		userId: userId,
@@ -61,6 +60,7 @@ export default async function handler(
           gte: startDate,
         },
         status: 'COMPLETED', // Only completed transactions
+        userId: req.user!.id  // Filter to the logged-in user
       },
       include: {
         category: true,
@@ -121,7 +121,7 @@ export default async function handler(
         categoryStats[categoryName].total += Math.abs(Number(transaction.amount))
       })
 
-    // Convert category data to array and sort by amount
+    // Define a color palette for categories
     const colors = [
       '#0ea5e9', // blue
       '#f43f5e', // red
@@ -175,4 +175,4 @@ export default async function handler(
       message: error instanceof Error ? error.message : 'Unknown error occurred'
     })
   }
-}
+})

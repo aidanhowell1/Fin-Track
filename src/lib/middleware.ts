@@ -9,7 +9,9 @@ export interface AuthenticatedRequest extends NextApiRequest {
   };
 }
 
-export const withAuth = (handler: (req: AuthenticatedRequest, res: NextApiResponse) => Promise<void | NextApiResponse>) => {
+export const withAuth = (
+  handler: (req: AuthenticatedRequest, res: NextApiResponse) => Promise<void | NextApiResponse>
+) => {
   return async (req: AuthenticatedRequest, res: NextApiResponse) => {
     try {
       const authHeader = req.headers.authorization;
@@ -28,7 +30,6 @@ export const withAuth = (handler: (req: AuthenticatedRequest, res: NextApiRespon
 
       try {
         const decoded = jwt.verify(token, secret) as any;
-        
         // Handle both id and userId in token payload
         const userId = decoded.id || decoded.userId;
         
