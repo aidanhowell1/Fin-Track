@@ -139,11 +139,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         console.log('Successfully processed mood analytics data');
 
         return res.status(200).json({
-          timelineData: processedData,
-          moodDistribution,
-          spendingCorrelation,
-          dailyEntriesCount: todayEntriesCount,
-          historicalWeeks: processedHistoricalWeeks,
+          timelineData: processedData || [],
+          moodDistribution: || {},
+          spendingCorrelation: || {},
+          dailyEntriesCount: todayEntriesCount || 0,
+          historicalWeeks: processedHistoricalWeeks || [],
           serverTime: new Date().toISOString(),
         });
 

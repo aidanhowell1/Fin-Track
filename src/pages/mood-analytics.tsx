@@ -168,6 +168,7 @@ const MoodAnalytics = () => {
 		throw new Error(errorData.message || 'Failed to fetch mood data');
 	  }
       const data = await response.json();
+	  console.log('Mood API response:', data);
       setAnalyticsData(data);
     } catch (error) {
       console.error('Error fetching mood data:', error);
@@ -178,6 +179,7 @@ const MoodAnalytics = () => {
 	        spendingCorrelation: {},
 	        dailyEntriesCount: 0,
 	        historicalWeeks: [],
+		});
     } finally {
       setLoading(false);
     }
@@ -224,7 +226,7 @@ const MoodAnalytics = () => {
   // Calculate mood insights
   const calculateInsights = () => {
     const insights: string[] = [];
-	if (!analyticsData.timelineData || analyticsData.timelineData.length === 0) {
+	if (!analyticsData.timelineData || !Array.isArray(analyticsData.timelineData)) {
 	    return insights; // Return empty insights if no data
 	  }
       // Most common mood
