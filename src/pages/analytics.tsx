@@ -52,16 +52,26 @@ export default function Analytics() {
         setLoading(true)
         setError(null)
 		const token = localStorage.getItem('token')
+		if (!token) {
+			console.error('No token found in localStorage');
+		    throw new Error('Authentication required: Please log in');
+		}
+		// Debug log (partial token for security)
+		console.log('Fetching analytics with token:', token.substring(0, 10) + '...'); 
 		const headers: HeadersInit = {
 		          'Content-Type': 'application/json',
-		}
-		if (token) {
-			headers['Authorization'] = `Bearer ${token}`
+				  'Authorization': `Bearer ${token}`
 		}
 				
-        const response = await fetch(`/api/analytics?period=${period}`)
+        const response = await fetch(`/api/analytics?period=${period}`,{
+			headers
+		});
 		
-        if (!response.ok) throw new Error('Failed to fetch analytics data')
+        if (!response.ok){
+			const errorData = await response.json()
+			console.error('Analytics fetch failed:', errorData);
+			throw new Error(errorData.error || 'Failed to fetch analytics data')
+		} 
         const data = await response.json()
         setAnalyticsData(data)
       } catch (error) {
@@ -73,7 +83,7 @@ export default function Analytics() {
     }
 
     fetchAnalytics()
-  }, [period, router])
+  }, [period])
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {

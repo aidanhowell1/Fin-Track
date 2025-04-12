@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/lib/prisma'
+import jwt from 'jsonwebtoken'
 
 export default async function handler(
   req: NextApiRequest,
@@ -19,6 +20,7 @@ export default async function handler(
       requestMethod: req.method,
     }
     console.error('Analytics API Error:', JSON.stringify(errorLog, null, 2))
+	return errorLog
   }
 
   try {
@@ -26,19 +28,25 @@ export default async function handler(
       res.setHeader('Allow', ['GET'])
       return res.status(405).end(`Method ${req.method} Not Allowed`)
     }
+	
+	//Extract and verify JWT token
 	let userId: string | null = null;
 	const authHeader = req.headers.authorization;
-	    if (authHeader && authHeader.startsWith('Bearer ')) {
-	      const token = authHeader.split(' ')[1];
+	    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+			const errorLog = logError('Missing or invalid Authorization header', 'AUTHENTICATION', { headers: req.headers });
+			return res.status(401).json({ error: 'Unauthorized: Missing or invalid token', details: errorLog });
+		}
+		const token = authHeader.split(' ')[1];
 	      try {
-	        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as { userId: string };
+	        const decoded = jwt.verify(token, process.env.JWT_SECRET || '59077dae9e9faea6bca7d2155a9c56509c13dcdbc677eb4631069a301f5800a7') as { userId: string };
 	        userId = decoded.userId;
 	      } catch (err) {
-	        return res.status(401).json({ error: 'Unauthorized: Invalid token' });
+			const errorLog = logError(err, 'TOKEN_VERIFICATION', { token });
+	        return res.status(401).json({ error: 'Unauthorized: Invalid token', details: errorLog });
 	      }
-	    }
 		if (!userId) {
-		      return res.status(401).json({ error: 'Unauthorized: User not authenticated' });
+			  const errorLog = logError('User ID not found in token', 'AUTHENTICATION');
+		      return res.status(401).json({ error: 'Unauthorized: User not authenticated', details: errorLog });
 		    }
 
     const period = parseInt(req.query.period as string) || 6
