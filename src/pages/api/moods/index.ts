@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import prisma from '@/lib/prisma';
+import { Prisma } from '@prisma/client'; // <-- Added import
 
 // Helper function to handle errors
 const handleError = (error: any, res: NextApiResponse) => {
@@ -38,17 +39,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         console.log('Fetching mood logs with transactions...');
         
         const { today, tomorrow, sevenDaysAgo, thirtyDaysAgo } = getDateRanges();
-		
-		//auth check
-		if(!req.user?.id){
-			console.error('User not authenticated');
-			return res.status(401).json({ error: 'Unauthorized', message: 'User not authenticated' });
-		}
-		let todayEntriesCount, recentMoodLogs, historicalWeeks;
 
         // Get today's entries count
-		try{
-        todayEntriesCount = await prisma.moodLog.count({
+        const todayEntriesCount = await prisma.moodLog.count({
           where: {
             date: {
               gte: today,
@@ -56,16 +49,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             },
           },
         });
-		console.log('Today entries count:', todayEntriesCount);
-		}
-		catch(error){
-			console.error('Error fetching todayEntriesCount:', error);
-			throw error;
-		}
 
         // Get last 30 days of mood logs with transactions
-		try{
-        recentMoodLogs = await prisma.moodLog.findMany({
+        const recentMoodLogs = await prisma.moodLog.findMany({
           where: {
             date: {
               gte: thirtyDaysAgo,
@@ -89,24 +75,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             },
           },
         });
-		console.log('Recent mood logs:', recentMoodLogs.length);
-		} catch (error) {
-		console.error('Error fetching recentMoodLogs:', error);
-			throw error;
-		}
 
         // Get historical weekly data
-		try{
-        historicalWeeks = await prisma.$queryRaw`
+        const historicalWeeks = await prisma.$queryRaw(Prisma.sql`
           WITH weeks AS (
             SELECT 
               date_trunc('week', m.date) as week_start,
               date_trunc('week', m.date) + interval '6 days' as week_end,
-              AVG(CAST(intensity AS FLOAT)) as avg_mood,
+              AVG(CAST(m.intensity AS FLOAT)) as avg_mood,
               COUNT(*) as entry_count,
               COALESCE(SUM(CASE WHEN t.type = 'EXPENSE' THEN ABS(CAST(t.amount AS FLOAT)) ELSE 0 END), 0) as total_spending
-            FROM mood_logs m
-            LEFT JOIN transactions t ON m."transactionId" = t.id
+            FROM "fintrack_schema"."mood_logs" m
+            LEFT JOIN "fintrack_schema"."transactions" t ON m."transactionId" = t.id
             WHERE m.date >= ${thirtyDaysAgo}
               AND m."userId" = ${req.user?.id}
               AND (t.id IS NULL OR t."userId" = ${req.user?.id})
@@ -114,15 +94,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             ORDER BY week_start DESC
             LIMIT 12
           )
-          SELECT * FROM weeks
-        `;
-		console.log('Historical weeks:', historicalWeeks);
-		  } catch (error) {
-		    console.error('Error fetching historicalWeeks:', error);
-		    throw error;
-		  }
-
-        console.log(`Retrieved ${recentMoodLogs.length} recent mood logs`);
+          SELECT * FROM weeks;
+        `);
 
         // Process the data for visualizations with proper date handling
         const processedData = recentMoodLogs.map(log => ({
@@ -179,7 +152,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         
         const { mood, intensity, notes, transactionId } = req.body;
 
-        // Validate required fields
         if (!mood || !intensity) {
           console.error('Missing required fields in mood log creation');
           return res.status(400).json({ 
@@ -191,7 +163,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           });
         }
 
-        // Validate intensity range
         if (intensity < 1 || intensity > 10) {
           console.error(`Invalid intensity value: ${intensity}`);
           return res.status(400).json({ 
@@ -200,7 +171,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           });
         }
 
-        // Check if mood has already been logged today (in UTC)
         const { today: todayStart, tomorrow: todayEnd } = getDateRanges();
 
         const existingMoodLogs = await prisma.moodLog.count({
@@ -220,7 +190,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           });
         }
 
-        // Create new mood log with current UTC timestamp
         const now = new Date();
         const newMoodLog = await prisma.moodLog.create({
           data: {
