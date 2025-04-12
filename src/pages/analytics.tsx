@@ -44,13 +44,23 @@ export default function Analytics() {
   })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
 
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
         setLoading(true)
         setError(null)
+		const token = localStorage.getItem('token')
+		const headers: HeadersInit = {
+		          'Content-Type': 'application/json',
+		}
+		if (token) {
+			headers['Authorization'] = `Bearer ${token}`
+		}
+				
         const response = await fetch(`/api/analytics?period=${period}`)
+		
         if (!response.ok) throw new Error('Failed to fetch analytics data')
         const data = await response.json()
         setAnalyticsData(data)
@@ -63,7 +73,7 @@ export default function Analytics() {
     }
 
     fetchAnalytics()
-  }, [period])
+  }, [period, router])
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {

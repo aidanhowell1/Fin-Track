@@ -26,12 +26,20 @@ export default async function handler(
       res.setHeader('Allow', ['GET'])
       return res.status(405).end(`Method ${req.method} Not Allowed`)
     }
-	// Get the authenticated user's session
-	    const session = await getServerSession(req, res, authOptions)
-	    if (!session?.user?.id) {
-	      return res.status(401).json({ error: 'Unauthorized: User not authenticated' })
+	let userId: string | null = null;
+	const authHeader = req.headers.authorization;
+	    if (authHeader && authHeader.startsWith('Bearer ')) {
+	      const token = authHeader.split(' ')[1];
+	      try {
+	        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as { userId: string };
+	        userId = decoded.userId;
+	      } catch (err) {
+	        return res.status(401).json({ error: 'Unauthorized: Invalid token' });
+	      }
 	    }
-	    const userId = session.user.id
+		if (!userId) {
+		      return res.status(401).json({ error: 'Unauthorized: User not authenticated' });
+		    }
 
     const period = parseInt(req.query.period as string) || 6
     const today = new Date()
