@@ -128,7 +128,7 @@ export default withAuth(async function handler(req: AuthenticatedRequest, res: N
 
     // --- Historical Weeks Query ---
     // Note: Using fully qualified table names – update these if your actual schema differs.
-   const historicalWeeks = await prisma.$queryRaw(Prisma.sql`
+const historicalWeeks = await prisma.$queryRaw(Prisma.sql`
   WITH weeks AS (
     SELECT 
       date_trunc('week', m.date) as week_start,
@@ -147,6 +147,7 @@ export default withAuth(async function handler(req: AuthenticatedRequest, res: N
   )
   SELECT * FROM weeks;
 `);
+
 
     const processedHistoricalWeeks = (historicalWeeks as any[]).map(week => ({
       weekStart: week.week_start.toISOString(),
