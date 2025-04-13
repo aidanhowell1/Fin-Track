@@ -18,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     let decoded;
     try {
       decoded = verifyToken(token);
-	  console.log('Decoded token:', decoded); //test
+      console.log('Decoded token:', decoded); // remove or limit logging in production
     } catch (error) {
       console.error('Password API: Token verification failed:', error);
       return res.status(401).json({ error: 'Invalid or expired token' });
@@ -35,7 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: 'Current and new passwords are required' });
     }
 
-    // Password validation
+    // Password validation via regex (must meet security requirements)
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!passwordRegex.test(newPassword)) {
       const errors: string[] = [];
@@ -52,15 +52,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
-      select: {
-        password: true,
-      },
+      select: { password: true },
     });
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
+    // Verify the provided current password matches the stored password
     const isValidPassword = await compare(currentPassword, user.password);
     if (!isValidPassword) {
       return res.status(401).json({ error: 'Current password is incorrect' });
@@ -69,9 +68,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const hashedPassword = await hash(newPassword, 12);
     await prisma.user.update({
       where: { id: decoded.userId },
-      data: {
-        password: hashedPassword,
-      },
+      data: { password: hashedPassword },
     });
 
     return res.status(200).json({ message: 'Password updated successfully' });
