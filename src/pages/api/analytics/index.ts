@@ -128,25 +128,26 @@ export default withAuth(async function handler(req: AuthenticatedRequest, res: N
 
     // --- Historical Weeks Query ---
     // Note: Using fully qualified table names – update these if your actual schema differs.
-    const historicalWeeks = await prisma.$queryRaw`
-      WITH weeks AS (
-        SELECT 
-          date_trunc('week', m.date) as week_start,
-          date_trunc('week', m.date) + interval '6 days' as week_end,
-          AVG(CAST(m.intensity AS FLOAT)) as avg_mood,
-          COUNT(*) as entry_count,
-          COALESCE(SUM(CASE WHEN t.type = 'EXPENSE' THEN ABS(CAST(t.amount AS FLOAT)) ELSE 0 END), 0) as total_spending
-        FROM "fintrack_schema"."mood_logs" m
-        LEFT JOIN "fintrack_schema"."transactions" t ON m."transactionId" = t.id
-        WHERE m.date >= ${startDate}
-          AND m."userId" = ${req.user!.id}
-          AND (t.id IS NULL OR t."userId" = ${req.user!.id})
-        GROUP BY date_trunc('week', m.date)
-        ORDER BY week_start DESC
-        LIMIT 12
-      )
-      SELECT * FROM weeks;
-    `;
+   const historicalWeeks = await prisma.$queryRaw(Prisma.sql`
+  WITH weeks AS (
+    SELECT 
+      date_trunc('week', m.date) as week_start,
+      date_trunc('week', m.date) + interval '6 days' as week_end,
+      AVG(CAST(m.intensity AS FLOAT)) as avg_mood,
+      COUNT(*) as entry_count,
+      COALESCE(SUM(CASE WHEN t.type = 'EXPENSE' THEN ABS(CAST(t.amount AS FLOAT)) ELSE 0 END), 0) as total_spending
+    FROM "mood_logs" m
+    LEFT JOIN "transactions" t ON m."transactionId" = t.id
+    WHERE m.date >= ${startDate}
+      AND m."userId" = ${req.user!.id}
+      AND (t.id IS NULL OR t."userId" = ${req.user!.id})
+    GROUP BY date_trunc('week', m.date)
+    ORDER BY week_start DESC
+    LIMIT 12
+  )
+  SELECT * FROM weeks;
+`);
+
     const processedHistoricalWeeks = (historicalWeeks as any[]).map(week => ({
       weekStart: week.week_start.toISOString(),
       weekEnd: week.week_end.toISOString(),
