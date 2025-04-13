@@ -1,7 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import jwt from 'jsonwebtoken';
 import prisma from '@/lib/prisma';
-import { withAuth, AuthenticatedRequest } from '@/lib/withAuth';
+import { withAuth, AuthenticatedRequest } from '../../../lib/withAuth';
+
 
 export default withAuth(async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   // Structured error logging helper
