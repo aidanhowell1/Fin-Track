@@ -22,6 +22,7 @@ export default function Settings() {
   const router = useRouter();
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [loading, setLoading] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -34,7 +35,6 @@ export default function Settings() {
       router.push('/auth/login');
       return;
     }
-
     fetchSettings(token);
   }, [router]);
 
@@ -106,12 +106,25 @@ export default function Settings() {
   // Handles password change form submission
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Client-side password complexity check
+    const passwordValid =
+      newPassword.length >= 8 &&
+      /[A-Z]/.test(newPassword) &&
+      /[a-z]/.test(newPassword) &&
+      /\d/.test(newPassword) &&
+      /[@$!%*?&]/.test(newPassword);
+    if (!passwordValid) {
+      toast.error('New password does not meet security requirements.');
+      return;
+    }
+
     if (newPassword !== confirmPassword) {
       toast.error('New passwords do not match');
       return;
     }
 
-    setLoading(true);
+    setPasswordLoading(true);
     try {
       const token = localStorage.getItem('token');
       if (!token) return;
@@ -129,8 +142,14 @@ export default function Settings() {
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to update password');
+        let errorMessage = 'Failed to update password';
+        try {
+          const data = await response.json();
+          errorMessage = data.error || errorMessage;
+        } catch {
+          // fallback
+        }
+        throw new Error(errorMessage);
       }
 
       setCurrentPassword('');
@@ -141,9 +160,9 @@ export default function Settings() {
       });
     } catch (error) {
       console.error('Error updating password:', error);
-      toast.error('Failed to update password');
+      toast.error(error instanceof Error ? error.message : 'Failed to update password');
     } finally {
-      setLoading(false);
+      setPasswordLoading(false);
     }
   };
 
@@ -208,12 +227,7 @@ export default function Settings() {
                 <form onSubmit={handleProfileSubmit} className="space-y-6">
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      value={settings.email}
-                      disabled
-                      className="bg-gray-50"
-                    />
+                    <Input id="email" value={settings.email} disabled className="bg-gray-50" />
                   </div>
 
 				  {/* Allows editing of user's name */}
@@ -289,11 +303,17 @@ export default function Settings() {
                       )}
                     </div>
 
-                    <Button 
-                      type="submit" 
-                      disabled={loading || !currentPassword || !newPassword || !confirmPassword || newPassword !== confirmPassword}
+                    <Button
+                      type="submit"
+                      disabled={
+                        passwordLoading ||
+                        !currentPassword ||
+                        !newPassword ||
+                        !confirmPassword ||
+                        newPassword !== confirmPassword
+                      }
                     >
-                      {loading ? 'Updating...' : 'Update Password'}
+                      {passwordLoading ? 'Updating...' : 'Update Password'}
                     </Button>
                   </form>
                 </CardContent>
@@ -303,7 +323,9 @@ export default function Settings() {
               <Card>
                 <CardHeader>
                   <CardTitle>Delete Account</CardTitle>
-                  <CardDescription>Permanently delete your account and all data</CardDescription>
+                  <CardDescription>
+                    Permanently delete your account and all data
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <AlertDialog>
@@ -329,10 +351,7 @@ export default function Settings() {
                       </div>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={handleDeleteAccount}
-                          className="bg-red-600 hover:bg-red-700"
-                        >
+                        <AlertDialogAction onClick={handleDeleteAccount} className="bg-red-600 hover:bg-red-700">
                           Delete Account
                         </AlertDialogAction>
                       </AlertDialogFooter>

@@ -1,4 +1,4 @@
-import { useEffect, useState, Component, ReactMode } from 'react';
+import { useEffect, useState, Component, ReactNode } from 'react';
 import { useRouter } from 'next/router';
 import { Layout } from '@/components/Layout';
 import { Card } from '@/components/ui/card';
@@ -13,7 +13,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { BarChart3, HelpCircle, Lock, SmilePlus } from 'lucide-react';
+import { BarChart3, HelpCircle, Lock } from 'lucide-react';
 import { 
   LineChart, 
   Line, 
@@ -23,7 +23,7 @@ import {
   Tooltip, 
   ResponsiveContainer,
   Legend,
-  BarChart,
+  BarChart as ReBarChart,
   Bar,
   PieChart,
   Pie,
@@ -32,14 +32,14 @@ import {
 import { MoodType } from '@prisma/client';
 
 // Mood colors mapping with softer, more calming colors
-const moodColors = {
-  VERY_HAPPY: '#22c55e',  // Soft green
-  HAPPY: '#60a5fa',       // Soft blue
-  NEUTRAL: '#a855f7',     // Soft purple
-  SAD: '#f59e0b',         // Soft orange
-  STRESSED: '#ef4444',    // Soft red
-  ANXIOUS: '#ec4899',     // Soft pink
-  BORED: '#64748b'        // Soft slate
+const moodColors: Record<string, string> = {
+  VERY_HAPPY: '#22c55e', // Soft green
+  HAPPY: '#60a5fa',      // Soft blue
+  NEUTRAL: '#a855f7',    // Soft purple
+  SAD: '#f59e0b',        // Soft orange
+  STRESSED: '#ef4444',   // Soft red
+  ANXIOUS: '#ec4899',    // Soft pink
+  BORED: '#64748b',      // Soft slate
 };
 // Interface for mood analytics data structure
 interface MoodAnalyticsData {
@@ -74,19 +74,21 @@ const formatDate = (dateStr: string) => {
   const date = new Date(dateStr);
   const now = new Date();
   const isToday = now.toDateString() === date.toDateString();
-  const isYesterday = new Date(now.setDate(now.getDate() - 1)).toDateString() === date.toDateString();
+  const yesterday = new Date();
+  yesterday.setDate(now.getDate() - 1);
+  const isYesterday = yesterday.toDateString() === date.toDateString();
 
   if (isToday) {
     return new Intl.DateTimeFormat('en-US', {
       hour: 'numeric',
       minute: 'numeric',
-      hour12: true
+      hour12: true,
     }).format(date);
   } else if (isYesterday) {
     return `Yesterday, ${new Intl.DateTimeFormat('en-US', {
       hour: 'numeric',
       minute: 'numeric',
-      hour12: true
+      hour12: true,
     }).format(date)}`;
   } else {
     return new Intl.DateTimeFormat('en-US', {
@@ -95,16 +97,20 @@ const formatDate = (dateStr: string) => {
       day: 'numeric',
       hour: 'numeric',
       minute: 'numeric',
-      hour12: true
+      hour12: true,
     }).format(date);
   }
 };
+<<<<<<< HEAD
 // Custom tooltip component for mood trend chart
 const CustomTooltip = ({ active, payload, label }: any) => {
+=======
+
+const CustomTooltip = ({ active, payload }: any) => {
+>>>>>>> 2e68df1285d6738c21a927916d357a399b5fa82c
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     const formattedDate = formatDate(data.date);
-    
     return (
       <div className="bg-background border border-border rounded-lg shadow-lg p-3">
         <p className="text-sm font-medium text-foreground mb-1">
@@ -123,6 +129,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   }
   return null;
 };
+
 // Error Boundary Class Component
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -158,10 +165,13 @@ class MoodAnalyticsErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoun
     return this.props.children;
   }
 }
+<<<<<<< HEAD
 // Main MoodAnalytics component
+=======
+
+>>>>>>> 2e68df1285d6738c21a927916d357a399b5fa82c
 const MoodAnalytics = () => {
   const router = useRouter();
-  const { pathname } = router;
   const [showInfoDialog, setShowInfoDialog] = useState(false);
   const [showClearButton, setShowClearButton] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -170,7 +180,7 @@ const MoodAnalytics = () => {
     moodDistribution: {},
     spendingCorrelation: {},
     dailyEntriesCount: 0,
-    historicalWeeks: []
+    historicalWeeks: [],
   });
   const [loading, setLoading] = useState(true);
   const [isOptedIn, setIsOptedIn] = useState(true);
@@ -179,7 +189,6 @@ const MoodAnalytics = () => {
   useEffect(() => {
     const optInStatus = localStorage.getItem('moodTrackingOptIn');
     setIsOptedIn(optInStatus !== 'false');
-    
     if (optInStatus !== 'false') {
       fetchMoodData();
     }
@@ -188,12 +197,9 @@ const MoodAnalytics = () => {
   // Set up polling for real-time updates
   useEffect(() => {
     if (!isOptedIn) return;
-
     const interval = setInterval(() => {
       fetchMoodData();
     }, 30000); // Poll every 30 seconds
-
-    // Cleanup interval on unmount
     return () => clearInterval(interval);
   }, [isOptedIn]);
 
@@ -201,23 +207,23 @@ const MoodAnalytics = () => {
   const fetchMoodData = async () => {
     try {
       const response = await fetch('/api/moods');
-	  if(!response.ok){
-		const errorData = await response.json();
-		throw new Error(errorData.message || 'Failed to fetch mood data');
-	  }
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to fetch mood data');
+      }
       const data = await response.json();
-	  console.log('Mood API response:', data);
+      console.log('Mood API response:', data);
       setAnalyticsData(data);
     } catch (error) {
       console.error('Error fetching mood data:', error);
-	  // Set fallback state to prevent crashes
-	      setAnalyticsData({
-	        timelineData: [],
-	        moodDistribution: {},
-	        spendingCorrelation: {},
-	        dailyEntriesCount: 0,
-	        historicalWeeks: [],
-		});
+      // Set fallback state to prevent crashes
+      setAnalyticsData({
+        timelineData: [],
+        moodDistribution: {},
+        spendingCorrelation: {},
+        dailyEntriesCount: 0,
+        historicalWeeks: [],
+      });
     } finally {
       setLoading(false);
     }
@@ -233,13 +239,11 @@ const MoodAnalytics = () => {
         },
         body: JSON.stringify({ mood, intensity, notes }),
       });
-      
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.details || 'Failed to log mood');
       }
-      
-      fetchMoodData(); // Refresh data after logging
+      fetchMoodData();
     } catch (error) {
       console.error('Error logging mood:', error);
     }
@@ -264,15 +268,26 @@ const MoodAnalytics = () => {
   // Calculate mood insights
   const calculateInsights = () => {
     const insights: string[] = [];
-	if (!analyticsData.timelineData || !Array.isArray(analyticsData.timelineData)) {
-	    return insights; // Return empty insights if no data
-	  }
-      // Most common mood
-      const moodCounts = analyticsData.moodDistribution;
-      const [mostCommonMood] = Object.entries(moodCounts).sort((a, b) => b[1] - a[1])[0] || [''];
-      if (mostCommonMood) {
-        insights.push(`Your most frequent mood is ${mostCommonMood.replace('_', ' ').toLowerCase()}`);
+    if (!analyticsData.timelineData || !Array.isArray(analyticsData.timelineData)) {
+      return insights; // Return empty insights if no data
+    }
+    // Most common mood
+    const moodCounts = analyticsData.moodDistribution;
+    const mostCommonEntry = Object.entries(moodCounts).sort((a, b) => b[1] - a[1])[0];
+    const [mostCommonMood] = mostCommonEntry || [''];
+    if (mostCommonMood) {
+      insights.push(`Your most frequent mood is ${mostCommonMood.replace('_', ' ').toLowerCase()}`);
+    }
+    // Highest spending mood
+    const spendingByMood = analyticsData.spendingCorrelation;
+    if (Object.keys(spendingByMood).length > 0) {
+      const highestSpendingEntry = Object.entries(spendingByMood)
+        .sort((a, b) => (b[1].totalSpent / b[1].count) - (a[1].totalSpent / a[1].count))[0];
+      const [highestSpendingMood] = highestSpendingEntry || [''];
+      if (highestSpendingMood) {
+        insights.push(`You tend to spend more when you're feeling ${highestSpendingMood.replace('_', ' ').toLowerCase()}`);
       }
+<<<<<<< HEAD
 
       // Highest spending mood
       const spendingByMood = analyticsData.spendingCorrelation;
@@ -289,6 +304,13 @@ const MoodAnalytics = () => {
       const averageMoodIntensity = recentMoods.reduce((sum, item) => sum + item.intensity, 0) / recentMoods.length;
       insights.push(`Your average mood intensity over the past week is ${averageMoodIntensity.toFixed(1)} out of 10`);
 	  
+=======
+    }
+    // Average mood intensity over recent 7 days
+    const recentMoods = analyticsData.timelineData.slice(-7);
+    const averageMoodIntensity = recentMoods.reduce((sum, item) => sum + item.intensity, 0) / (recentMoods.length || 1);
+    insights.push(`Your average mood intensity over the past week is ${averageMoodIntensity.toFixed(1)} out of 10`);
+>>>>>>> 2e68df1285d6738c21a927916d357a399b5fa82c
     return insights;
   };
 
@@ -312,11 +334,9 @@ const MoodAnalytics = () => {
       const response = await fetch('/api/moods', {
         method: 'DELETE',
       });
-      
       if (!response.ok) {
         throw new Error('Failed to clear mood data');
       }
-      
       fetchMoodData();
       setShowClearConfirm(false);
       setShowInfoDialog(false);
@@ -359,19 +379,10 @@ const MoodAnalytics = () => {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
-              onClick={toggleOptIn}
-              className="text-sm"
-            >
+            <Button variant="outline" onClick={toggleOptIn} className="text-sm">
               Disable Tracking
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={showInfo}
-              className="rounded-full"
-            >
+            <Button variant="ghost" size="icon" onClick={showInfo} className="rounded-full">
               <HelpCircle className="h-6 w-6" />
             </Button>
           </div>
@@ -384,7 +395,6 @@ const MoodAnalytics = () => {
             dailyEntriesCount={analyticsData.dailyEntriesCount}
             onRefresh={fetchMoodData}
           />
-          
           {/* Insights Card */}
           <Card className="p-6">
             <h2 className="text-xl font-semibold mb-4">Your Mood Insights</h2>
@@ -461,7 +471,7 @@ const MoodAnalytics = () => {
                     {distributionData.map((entry, index) => (
                       <Cell 
                         key={`cell-${index}`} 
-                        fill={moodColors[entry.mood as keyof typeof moodColors]} 
+                        fill={moodColors[entry.mood] || '#ccc'} 
                       />
                     ))}
                   </Pie>
@@ -477,7 +487,7 @@ const MoodAnalytics = () => {
             <h2 className="text-xl font-semibold mb-4">Mood-Spending Correlation</h2>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart 
+                <ReBarChart 
                   data={spendingData}
                   style={{ userSelect: 'none' }}
                 >
@@ -488,10 +498,7 @@ const MoodAnalytics = () => {
                     tick={{ fill: '#6b7280' }}
                     tickFormatter={(value) => value.replace('_', ' ')}
                   />
-                  <YAxis 
-                    stroke="#6b7280"
-                    tick={{ fill: '#6b7280' }}
-                  />
+                  <YAxis stroke="#6b7280" tick={{ fill: '#6b7280' }} />
                   <Tooltip 
                     cursor={{ fill: 'rgba(0, 0, 0, 0.1)' }}
                     contentStyle={{ 
@@ -513,14 +520,13 @@ const MoodAnalytics = () => {
                     {spendingData.map((entry, index) => (
                       <Cell 
                         key={`cell-${index}`} 
-                        fill={moodColors[entry.mood as keyof typeof moodColors]} 
+                        fill={moodColors[entry.mood] || '#ccc'} 
                       />
                     ))}
                   </Bar>
-                </BarChart>
+                </ReBarChart>
               </ResponsiveContainer>
             </div>
-			</Card>
             {/* Historical Weekly Data */}
             <div className="mt-6">
               <h3 className="text-lg font-semibold mb-3">Historical Weekly Summary</h3>
@@ -606,16 +612,10 @@ const MoodAnalytics = () => {
               </DialogDescription>
             </DialogHeader>
             <DialogFooter className="gap-2 sm:gap-0">
-              <Button
-                variant="outline"
-                onClick={() => setShowClearConfirm(false)}
-              >
+              <Button variant="outline" onClick={() => setShowClearConfirm(false)}>
                 Cancel
               </Button>
-              <Button
-                variant="destructive"
-                onClick={handleClearData}
-              >
+              <Button variant="destructive" onClick={handleClearData}>
                 Yes, Clear All Data
               </Button>
             </DialogFooter>

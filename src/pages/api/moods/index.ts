@@ -28,14 +28,14 @@ const logError = (error: any, context: string) => {
   console.error(`Mood API Error [${context}]:`, {
     message: error.message,
     stack: error.stack,
-    cause: error.cause
+    cause: error.cause,
   });
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     switch (req.method) {
-      case 'GET':
+      case 'GET': {
         console.log('Fetching mood logs with transactions...');
         
         const { today, tomorrow, sevenDaysAgo, thirtyDaysAgo } = getDateRanges();
@@ -51,12 +51,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
 
         // Get last 30 days of mood logs with transactions
+        // Note: Replace `req.user?.id` with the appropriate user identification logic.
         const recentMoodLogs = await prisma.moodLog.findMany({
           where: {
             date: {
               gte: thirtyDaysAgo,
             },
-            userId: req.user?.id, // Add user filtering
+            userId: req.user?.id, // Add user filtering if available
           },
           orderBy: {
             date: 'desc',
@@ -68,8 +69,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 type: true,
                 category: {
                   select: {
-                    name: true
-                  }
+                    name: true,
+                  },
                 },
               },
             },
@@ -140,16 +141,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         return res.status(200).json({
           timelineData: processedData || [],
-          moodDistribution: || {},
-          spendingCorrelation: || {},
+          moodDistribution: moodDistribution || {},
+          spendingCorrelation: spendingCorrelation || {},
           dailyEntriesCount: todayEntriesCount || 0,
           historicalWeeks: processedHistoricalWeeks || [],
           serverTime: new Date().toISOString(),
         });
-
-      case 'POST':
+      }
+      case 'POST': {
         console.log('Creating new mood log...');
-        
         const { mood, intensity, notes, transactionId } = req.body;
 
         if (!mood || !intensity) {
@@ -209,16 +209,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           ...newMoodLog,
           serverTime: now.toISOString(),
         });
-
-      case 'DELETE':
+      }
+      case 'DELETE': {
         console.log('Deleting all mood logs...');
-        
         await prisma.moodLog.deleteMany({});
-        
         console.log('Successfully deleted all mood logs');
-        
         return res.status(200).json({ message: 'All mood logs deleted successfully' });
-
+      }
       default:
         console.log(`Method ${req.method} not allowed`);
         res.setHeader('Allow', ['GET', 'POST', 'DELETE']);
