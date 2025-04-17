@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Skeleton } from "@/components/ui/skeleton"
 
+// Define the default exported GoalsPage 
 export default function GoalsPage() {
   const [goals, setGoals] = useState<any[]>([])
   const [categories, setCategories] = useState<any[]>([])
@@ -38,6 +39,7 @@ export default function GoalsPage() {
           fetch("/api/categories"),
         ])
         
+		// Check if either response failed
         if (!goalsRes.ok || !categoriesRes.ok) {
           throw new Error("Failed to fetch data")
         }
@@ -47,6 +49,7 @@ export default function GoalsPage() {
           categoriesRes.json(),
         ])
 
+		// Update state with fetched data
         setGoals(goalsData)
         setCategories(categoriesData)
       } catch (error) {
@@ -62,8 +65,9 @@ export default function GoalsPage() {
     }
 
     fetchData()
-  }, [toast])
+  }, [toast]) // Dependency array includes toast to ensure stable reference
 
+  // Function to handle creation of a new goal
   const handleCreateGoal = async (data: any) => {
     try {
       const formattedData = {
@@ -71,7 +75,7 @@ export default function GoalsPage() {
         targetAmount: Number(data.targetAmount),
         allocateAmount: data.allocateAmount ? Number(data.allocateAmount) : undefined,
       }
-
+	  // Send POST request to create a new goal
       const response = await fetch("/api/goals", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -98,6 +102,7 @@ export default function GoalsPage() {
     }
   }
 
+  // Function to handle updating an existing goal
   const handleUpdateGoal = async (data: any) => {
     if (!editingGoal) return
 
@@ -135,11 +140,11 @@ export default function GoalsPage() {
       })
     }
   }
-
+  // Function to navigate to the transactions page to allocate funds to a goal
   const handleAllocate = (goalId: string) => {
     router.push(`/transactions?allocateToGoal=${goalId}`)
   }
-
+  // Filter goals by status for display in tabs
   const activeGoals = goals.filter((goal) => goal.status === "ACTIVE")
   const completedGoals = goals.filter((goal) => goal.status === "COMPLETED")
   const cancelledGoals = goals.filter((goal) => goal.status === "CANCELLED")
@@ -156,7 +161,7 @@ export default function GoalsPage() {
       ))}
     </div>
   )
-
+  // Component to render loading placeholders during data fetching
   const LoadingSkeleton = () => (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {[1, 2, 3].map((i) => (
@@ -166,7 +171,7 @@ export default function GoalsPage() {
       ))}
     </div>
   )
-
+  // Render the GoalsPage UI
   return (
     <Layout>
       <div className="container mx-auto py-6 px-4 sm:px-6">

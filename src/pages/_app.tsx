@@ -12,7 +12,8 @@ export default function App({ Component, pageProps }: AppProps) {
     const root = document.documentElement;
     const computedStyle = getComputedStyle(root);
     const colorScheme = computedStyle.getPropertyValue('--mode').trim().replace(/"/g, '');
-    if (colorScheme === 'dark') {
+	// Apply dark or light class to <html>
+	if (colorScheme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.add('light');
@@ -25,6 +26,7 @@ export default function App({ Component, pageProps }: AppProps) {
     return null;
   }
 
+  // Render page with toaster
   return (
     <div className="min-h-screen">
       <Component {...pageProps} />

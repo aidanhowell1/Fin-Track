@@ -27,6 +27,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { CalendarIcon, Plus } from 'lucide-react'
 import { fetchWithAuth } from '@/lib/api'
 
+// Budget interface definition
 interface Budget {
   id: string
   category: {
@@ -42,7 +43,7 @@ interface Budget {
   currentSpending: number
   percentageUsed: string
 }
-
+// Default form data for new budget
 const defaultFormData = {
   categoryId: '',
   monthlyLimit: '',

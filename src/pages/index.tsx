@@ -32,6 +32,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { fetchWithAuth } from '@/lib/api'
 import { useToast } from "@/components/ui/use-toast"
 
+// Category icons mapping for transaction categories
 const categoryIcons: { [key: string]: any } = {
   groceries: ShoppingCart,
   rent: HomeIcon,
@@ -43,13 +44,13 @@ const categoryIcons: { [key: string]: any } = {
   investment: DollarSign,
   shopping: CreditCard,
 }
-
+// Predefined income categories for transaction form
 const incomeCategories = [
   { value: 'salary', label: 'Salary' },
   { value: 'investment', label: 'Investment' },
   { value: 'gift', label: 'Gift' },
 ]
-
+// Predefined expense categories for transaction form
 const expenseCategories = [
   { value: 'groceries', label: 'Groceries' },
   { value: 'rent', label: 'Rent' },
@@ -58,7 +59,7 @@ const expenseCategories = [
   { value: 'food', label: 'Food' },
   { value: 'shopping', label: 'Shopping' },
 ]
-
+// Interface for transaction data structure
 interface Transaction {
   id: string
   date: string
@@ -67,13 +68,13 @@ interface Transaction {
   amount: number
   type: 'INCOME' | 'EXPENSE'
 }
-
+// Interface for user settings
 interface UserSettings {
   currency: string
   language: string
   timezone: string
 }
-
+// Main Home component for the dashboard
 export default function Home() {
   const { toast } = useToast()
   const router = useRouter()
@@ -93,17 +94,17 @@ export default function Home() {
     description: '',
   })
   const [activeTab, setActiveTab] = useState('transactions')
-
+  // Fetches transactions and user settings on component mount or when router changes
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (!token) {
-      router.push('/auth/login')
+      router.push('/auth/login') // Redirect to login if no authentication token is found
       return
     }
 
     fetchData()
   }, [router])
-
+  // Fetches transactions and user settings from API
   const fetchData = async () => {
     try {
       setLoading(true)
@@ -132,7 +133,7 @@ export default function Home() {
       setLoading(false)
     }
   }
-
+	// Handles submission of new transaction form
   const handleSubmit = async () => {
     if (!formData.amount || !formData.type || !formData.category || !date) {
       toast({
@@ -180,14 +181,14 @@ export default function Home() {
       })
     }
   }
-
+  // Formats a number as currency based on user settings
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: settings.currency || 'USD',
     }).format(amount)
   }
-
+  // Handles tab changes and navigates to budgets or analytics if selected
   const handleTabChange = (value: string) => {
     setActiveTab(value)
     if (value === 'budgets') {
@@ -202,6 +203,7 @@ export default function Home() {
       <div className="space-y-8">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+		  {/* Button that opens a dialog for adding a new transaction */}
           <Dialog open={isAddingTransaction} onOpenChange={setIsAddingTransaction}>
             <DialogTrigger asChild>
               <Button>
@@ -209,6 +211,7 @@ export default function Home() {
                 Add Transaction
               </Button>
             </DialogTrigger>
+			{/* form for entering transaction details (amount, type, category, date, description) */}
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
                 <DialogTitle>Add New Transaction</DialogTitle>
@@ -241,6 +244,7 @@ export default function Home() {
                     </SelectContent>
                   </Select>
                 </div>
+				{/* Dropdown to select transaction type (Income or Expense) */}
                 <div className="grid gap-2">
                   <Label htmlFor="category">Category</Label>
                   <Select
@@ -262,6 +266,7 @@ export default function Home() {
                     </SelectContent>
                   </Select>
                 </div>
+				{/* Popover with a calendar to select transaction date */}
                 <div className="grid gap-2">
                   <Label>Date</Label>
                   <Popover>
@@ -287,6 +292,7 @@ export default function Home() {
                     </PopoverContent>
                   </Popover>
                 </div>
+				{/* Text input for optional transaction description */}
                 <div className="grid gap-2">
                   <Label htmlFor="description">Description</Label>
                   <Input 
@@ -303,7 +309,8 @@ export default function Home() {
             </DialogContent>
           </Dialog>
         </div>
-
+		{/* Displays summary stats (total income, expenses, transaction 
+			count) when data is loaded */}
         {!loading && transactions.length > 0 && (
           <DashboardStats
             totalIncome={transactions.reduce((sum, t) => t.type === 'INCOME' ? sum + t.amount : sum, 0)}
@@ -313,7 +320,7 @@ export default function Home() {
         )}
 
 
-
+		{/* Card containing tabs for transactions, budgets, and analytics */}
         <Card className="p-6">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
             <TabsList className="w-full justify-start">
@@ -330,6 +337,8 @@ export default function Home() {
                     <div>Category</div>
                     <div className="text-right">Amount</div>
                   </div>
+				  {/* Conditionally renders loading placeholders, transactions, or an
+					 empty state message */}
                   {loading ? (
                     <div className="space-y-4">
                       {[1, 2, 3].map((i) => (
@@ -372,6 +381,7 @@ export default function Home() {
                 </div>
               </ScrollArea>
             </TabsContent>
+			{/* Placeholder with a button to navigate to the budgets page */}
             <TabsContent value="budgets">
               <div className="h-[400px] w-full rounded-md border p-4 flex items-center justify-center">
                 <Link href="/budgets">
@@ -379,6 +389,7 @@ export default function Home() {
                 </Link>
               </div>
             </TabsContent>
+			{/* Placeholder with a button to navigate to the analytics page */}
             <TabsContent value="analytics">
               <div className="h-[400px] w-full rounded-md border p-4 flex items-center justify-center">
                 <Link href="/analytics">

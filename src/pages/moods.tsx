@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { MoodType } from '@prisma/client';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
+// Interface for a single mood entry
 interface RecentMood {
   id: string;
   mood: MoodType;
@@ -12,18 +13,19 @@ interface RecentMood {
   notes?: string;
   date: string;
 }
-
+// Interface for mood data from API
 interface MoodData {
   timelineData: RecentMood[];
   dailyEntriesCount: number;
 }
-
+// Main MoodsPage component
 const MoodsPage = () => {
   const [recentMoods, setRecentMoods] = useState<RecentMood[]>([]);
   const [dailyEntriesCount, setDailyEntriesCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Fetches recent mood data from API
   const fetchRecentMoods = async () => {
     try {
       setIsLoading(true);
@@ -46,10 +48,12 @@ const MoodsPage = () => {
     }
   };
 
+  // Fetch moods on component mount
   useEffect(() => {
     fetchRecentMoods();
   }, []);
 
+  // Logs a new mood entry and refreshes recent moods
   const handleMoodLog = async (mood: MoodType, intensity: number, notes?: string) => {
     try {
       const response = await fetch('/api/moods', {
@@ -82,13 +86,14 @@ const MoodsPage = () => {
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-        
+		{/* Two-column grid for MoodLogger and recent moods card on medium screens */}
         <div className="grid gap-6 md:grid-cols-2">
           <MoodLogger 
             onMoodLog={handleMoodLog} 
             dailyEntriesCount={dailyEntriesCount}
           />
-          
+		  
+		  {/* Displays the five most recent mood entries */}
           <Card className="p-6">
             <h2 className="text-xl font-semibold mb-4">Recent Moods</h2>
             <div className="space-y-4">
@@ -100,6 +105,7 @@ const MoodsPage = () => {
                     </div>
                   ))}
                 </div>
+				{/* Lists recent moods with details (mood, intensity, notes, date)*/}
               ) : recentMoods.length > 0 ? (
                 recentMoods.map((mood) => (
                   <div key={mood.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -116,6 +122,7 @@ const MoodsPage = () => {
                       {new Date(mood.date).toLocaleDateString()}
                     </div>
                   </div>
+				  {/* Shows message if no moods are logged*/}
                 ))
               ) : (
                 <p className="text-gray-500 text-center">No recent moods logged</p>

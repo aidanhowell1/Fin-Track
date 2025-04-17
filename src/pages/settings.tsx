@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 
+// Interface for user settings data
 interface UserSettings {
   id: string;
   name: string;
@@ -16,6 +17,7 @@ interface UserSettings {
   createdAt: string;
 }
 
+// Main Settings component
 export default function Settings() {
   const router = useRouter();
   const [settings, setSettings] = useState<UserSettings | null>(null);
@@ -25,6 +27,7 @@ export default function Settings() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [deleteConfirmPassword, setDeleteConfirmPassword] = useState('');
 
+  // Fetches user settings on mount or token change
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -35,6 +38,7 @@ export default function Settings() {
     fetchSettings(token);
   }, [router]);
 
+  // Fetches user settings from API
   const fetchSettings = async (token: string) => {
     try {
       const response = await fetch('/api/user/settings', {
@@ -63,6 +67,7 @@ export default function Settings() {
     }
   };
 
+  // Handles profile update form submission
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -98,6 +103,7 @@ export default function Settings() {
     }
   };
 
+  // Handles password change form submission
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
@@ -141,6 +147,7 @@ export default function Settings() {
     }
   };
 
+  // Handles account deletion
   const handleDeleteAccount = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -170,6 +177,7 @@ export default function Settings() {
     }
   };
 
+  // Shows spinner while settings are being fetched
   if (!settings) {
     return (
       <Layout>
@@ -189,6 +197,7 @@ export default function Settings() {
             <TabsTrigger value="security">Security</TabsTrigger>
           </TabsList>
 
+		  {/* Form to update user profile information */}
           <TabsContent value="profile">
             <Card>
               <CardHeader>
@@ -207,6 +216,7 @@ export default function Settings() {
                     />
                   </div>
 
+				  {/* Allows editing of user's name */}
                   <div className="space-y-2">
                     <Label htmlFor="name">Name</Label>
                     <Input
@@ -225,6 +235,7 @@ export default function Settings() {
             </Card>
           </TabsContent>
 
+		  {/* Contains password change and account deletion forms */}
           <TabsContent value="security">
             <div className="space-y-6">
               <Card>
@@ -244,6 +255,7 @@ export default function Settings() {
                       />
                     </div>
 
+					{/* Input for new password with requirements */}
                     <div className="space-y-2">
                       <Label htmlFor="newPassword">New Password</Label>
                       <Input
@@ -263,6 +275,7 @@ export default function Settings() {
                       </p>
                     </div>
 
+					{/* Input to confirm new password */}
                     <div className="space-y-2">
                       <Label htmlFor="confirmPassword">Confirm New Password</Label>
                       <Input
@@ -286,6 +299,7 @@ export default function Settings() {
                 </CardContent>
               </Card>
 
+			  {/* Option to permanently delete account */}
               <Card>
                 <CardHeader>
                   <CardTitle>Delete Account</CardTitle>

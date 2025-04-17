@@ -23,9 +23,11 @@ import {
 } from 'recharts'
 import { useState, useEffect } from 'react'
 
+	// Analytics page component
 export default function Analytics() {
-  const [period, setPeriod] = useState('6')
-  const [analyticsData, setAnalyticsData] = useState<{
+		// State for time period selection
+  	const [period, setPeriod] = useState('6')
+  	const [analyticsData, setAnalyticsData] = useState<{
     monthlyData: any[];
     categoryData: any[];
     totals: {
@@ -42,27 +44,30 @@ export default function Analytics() {
       balance: 0
     }
   })
+  	// State for loading and error handling
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
-
+	
+  	// Fetch analytics data based on period
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
         setLoading(true)
         setError(null)
+			// Get auth token
 		const token = localStorage.getItem('token')
 		if (!token) {
 			console.error('No token found in localStorage');
 		    throw new Error('Authentication required: Please log in');
 		}
-		// Debug log (partial token for security)
+			// Debug log (partial token for security)
 		console.log('Fetching analytics with token:', token.substring(0, 10) + '...'); 
 		const headers: HeadersInit = {
 		          'Content-Type': 'application/json',
 				  'Authorization': `Bearer ${token}`
 		}
-				
+			// Fetch analytics data		
         const response = await fetch(`/api/analytics?period=${period}`,{
 			headers
 		});
@@ -75,6 +80,7 @@ export default function Analytics() {
         const data = await response.json()
         setAnalyticsData(data)
       } catch (error) {
+		// Handle fetch errors
         console.error('Error fetching analytics:', error)
         setError(error instanceof Error ? error.message : 'Failed to load analytics')
       } finally {
@@ -85,6 +91,7 @@ export default function Analytics() {
     fetchAnalytics()
   }, [period])
 
+  // Format numbers as USD currency
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -94,6 +101,7 @@ export default function Analytics() {
     }).format(value)
   }
 
+  // Show error state if fetch fails
   if (error) {
     return (
       <Layout>
@@ -105,6 +113,7 @@ export default function Analytics() {
   }
 
   return (
+	{/* Page header with period selector */}
     <Layout>
       <div className="space-y-8">
         <div className="flex justify-between items-center">
@@ -143,6 +152,7 @@ export default function Analytics() {
           </Card>
         </div>
 
+		{/* Line chart for income vs expenses */}
         <div className="grid gap-8 md:grid-cols-2">
           <Card className="p-6">
             <h2 className="text-lg font-semibold mb-4">Income vs Expenses</h2>
@@ -188,6 +198,7 @@ export default function Analytics() {
             )}
           </Card>
 
+		  {/* Pie chart for expense categories */}
           <Card className="p-6">
             <h2 className="text-lg font-semibold mb-4">Top Expenses by Category</h2>
             {loading ? (
@@ -228,6 +239,7 @@ export default function Analytics() {
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
+				{/* Legend for pie chart */}
                 <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-2">
                   {analyticsData.categoryData.map((category: any, index: number) => (
                     <div key={index} className="flex items-center gap-2">
@@ -245,6 +257,7 @@ export default function Analytics() {
             )}
           </Card>
 
+		  {/* Detailed analysis with tabs */}
           <Card className="p-6 md:col-span-2">
             <Tabs defaultValue="monthly" className="w-full">
               <div className="flex justify-between items-center mb-4">
@@ -254,6 +267,7 @@ export default function Analytics() {
                   <TabsTrigger value="category">By Category</TabsTrigger>
                 </TabsList>
               </div>
+			  {/* Monthly line chart */}
               <TabsContent value="monthly">
                 {loading ? (
                   <div className="h-[400px] flex items-center justify-center">
@@ -296,6 +310,7 @@ export default function Analytics() {
                   </div>
                 )}
               </TabsContent>
+			  {/* Category breakdown */}
               <TabsContent value="category">
                 {loading ? (
                   <div className="h-[400px] flex items-center justify-center">

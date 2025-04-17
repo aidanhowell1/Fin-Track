@@ -41,7 +41,7 @@ const moodColors = {
   ANXIOUS: '#ec4899',     // Soft pink
   BORED: '#64748b'        // Soft slate
 };
-
+// Interface for mood analytics data structure
 interface MoodAnalyticsData {
   timelineData: Array<{
     date: string;
@@ -69,6 +69,7 @@ interface MoodAnalyticsData {
 
 const MAX_DAYS_TO_SHOW = 14; // Maximum number of days to show in the chart
 
+// Formats date strings for display in tooltips
 const formatDate = (dateStr: string) => {
   const date = new Date(dateStr);
   const now = new Date();
@@ -98,7 +99,7 @@ const formatDate = (dateStr: string) => {
     }).format(date);
   }
 };
-
+// Custom tooltip component for mood trend chart
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
@@ -157,6 +158,7 @@ class MoodAnalyticsErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoun
     return this.props.children;
   }
 }
+// Main MoodAnalytics component
 const MoodAnalytics = () => {
   const router = useRouter();
   const { pathname } = router;
@@ -173,6 +175,7 @@ const MoodAnalytics = () => {
   const [loading, setLoading] = useState(true);
   const [isOptedIn, setIsOptedIn] = useState(true);
 
+  // Checks opt-in status and fetches mood data on mount
   useEffect(() => {
     const optInStatus = localStorage.getItem('moodTrackingOptIn');
     setIsOptedIn(optInStatus !== 'false');
@@ -194,6 +197,7 @@ const MoodAnalytics = () => {
     return () => clearInterval(interval);
   }, [isOptedIn]);
 
+  // Fetches mood analytics data from API
   const fetchMoodData = async () => {
     try {
       const response = await fetch('/api/moods');
@@ -219,6 +223,7 @@ const MoodAnalytics = () => {
     }
   };
 
+  // Logs a new mood entry and refreshes data
   const handleMoodLog = async (mood: MoodType, intensity: number, notes?: string) => {
     try {
       const response = await fetch('/api/moods', {
@@ -237,7 +242,6 @@ const MoodAnalytics = () => {
       fetchMoodData(); // Refresh data after logging
     } catch (error) {
       console.error('Error logging mood:', error);
-      // You might want to show an error message to the user here
     }
   };
 
@@ -280,7 +284,7 @@ const MoodAnalytics = () => {
         }
       }
 
-      // Add spending patterns
+      // Avg mood intensity
       const recentMoods = analyticsData.timelineData.slice(-7);
       const averageMoodIntensity = recentMoods.reduce((sum, item) => sum + item.intensity, 0) / recentMoods.length;
       insights.push(`Your average mood intensity over the past week is ${averageMoodIntensity.toFixed(1)} out of 10`);
@@ -288,6 +292,7 @@ const MoodAnalytics = () => {
     return insights;
   };
 
+  // Toggles mood tracking opt-in status
   const toggleOptIn = () => {
     const newOptInStatus = !isOptedIn;
     setIsOptedIn(newOptInStatus);
@@ -296,12 +301,12 @@ const MoodAnalytics = () => {
       fetchMoodData();
     }
   };
-
+  // Opens the info dialog with clear data option
   const showInfo = () => {
     setShowInfoDialog(true);
     setShowClearButton(true);
   };
-
+  // Clears all mood data via API
   const handleClearData = async () => {
     try {
       const response = await fetch('/api/moods', {
@@ -320,7 +325,7 @@ const MoodAnalytics = () => {
       console.error('Error clearing mood data:', error);
     }
   };
-
+  // Displays a message and button to enable mood tracking if user has opted out
   if (!isOptedIn) {
     return (
       <Layout>
@@ -337,7 +342,7 @@ const MoodAnalytics = () => {
       </Layout>
     );
   }
-
+  // Wraps content in Layout component for consistent navigation and styling
   return (
     <Layout>
       <div className="container mx-auto p-6">
@@ -372,6 +377,7 @@ const MoodAnalytics = () => {
           </div>
         </div>
 
+		{/* Grid for MoodLogger and insights card, side-by-side on medium screens */}
         <div className="grid gap-6 md:grid-cols-2 mb-6">
           <MoodLogger 
             onMoodLog={handleMoodLog} 
@@ -545,7 +551,7 @@ const MoodAnalytics = () => {
             </div>
           </Card>
         </div>
-
+		{/* explaining mood analytics and offering data clear option */}
         <Dialog open={showInfoDialog} onOpenChange={setShowInfoDialog}>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
@@ -590,6 +596,7 @@ const MoodAnalytics = () => {
           </DialogContent>
         </Dialog>
 
+		{/* confirm deletion of all mood data */}
         <Dialog open={showClearConfirm} onOpenChange={setShowClearConfirm}>
           <DialogContent>
             <DialogHeader>
