@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/lib/prisma'
 
+// Main API handler for goal operations by ID
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     switch (req.method) {
@@ -20,6 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 }
 
+// Handler for retrieving a specific goal
 async function getGoal(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { id } = req.query
@@ -52,7 +54,7 @@ async function getGoal(req: NextApiRequest, res: NextApiResponse) {
     return res.status(500).json({ error: 'Failed to fetch goal' })
   }
 }
-
+// Handler for updating a specific goal
 async function updateGoal(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { id } = req.query
@@ -101,6 +103,7 @@ async function updateGoal(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
+// Handler for deleting a specific goal
 async function deleteGoal(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { id } = req.query

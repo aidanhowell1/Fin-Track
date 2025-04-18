@@ -74,6 +74,7 @@ const logError = (error: any, context: string, userId: string, additionalInfo?: 
   return errorLog
 }
 
+// Main API handler function for transactions endpoint
 async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   const user = req.user
   if (!user) {
@@ -356,4 +357,5 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   }
 }
 
+// Wrap handler with authentication middleware
 export default withAuth(handler)

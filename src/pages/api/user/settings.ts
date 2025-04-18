@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { withAuth, AuthenticatedRequest } from '@/lib/middleware';
 import { compare } from 'bcryptjs';
 
+// Main API handler function for user settings
 async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   try {
     if (!req.user) {
@@ -37,6 +38,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       return res.status(200).json(user);
     }
 
+	// Handle PUT request to update user settings
     if (req.method === 'PUT') {
       const {
         name,
@@ -71,6 +73,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
           })
         ]);
 
+		// Fetch updated user settings
         const updatedUser = await prisma.user.findUnique({
           where: { id: req.user.id },
           select: {
@@ -128,6 +131,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       return res.status(200).json(updatedUser);
     }
 
+	// Handle DELETE request to delete user account
     if (req.method === 'DELETE') {
       const { password } = req.body;
 
@@ -166,4 +170,5 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   }
 }
 
+// Wrap handler with authentication middleware
 export default withAuth(handler);

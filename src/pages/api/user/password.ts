@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
 import { compare, hash } from 'bcryptjs';
 
+// Main API handler function for password updates
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'PUT') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -50,6 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
+	// Fetch user from database
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
       select: { password: true },
@@ -65,6 +67,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ error: 'Current password is incorrect' });
     }
 
+	// Hash new password and update user record
     const hashedPassword = await hash(newPassword, 12);
     await prisma.user.update({
       where: { id: decoded.userId },

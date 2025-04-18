@@ -32,6 +32,7 @@ const logError = (error: any, context: string) => {
   });
 };
 
+// Main API handler function for mood logs endpoint
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     switch (req.method) {
@@ -51,7 +52,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
 
         // Get last 30 days of mood logs with transactions
-        // Note: Replace `req.user?.id` with the appropriate user identification logic.
         const recentMoodLogs = await prisma.moodLog.findMany({
           where: {
             date: {
@@ -139,6 +139,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         console.log('Successfully processed mood analytics data');
 
+		// Return comprehensive mood analytics response
         return res.status(200).json({
           timelineData: processedData || [],
           moodDistribution: moodDistribution || {},
@@ -149,6 +150,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       }
       case 'POST': {
+		// Handle POST request for creating new mood log
         console.log('Creating new mood log...');
         const { mood, intensity, notes, transactionId } = req.body;
 
@@ -163,6 +165,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           });
         }
 
+		// Validate intensity range
         if (intensity < 1 || intensity > 10) {
           console.error(`Invalid intensity value: ${intensity}`);
           return res.status(400).json({ 
@@ -171,8 +174,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           });
         }
 
+		// Check daily mood log limit
         const { today: todayStart, tomorrow: todayEnd } = getDateRanges();
-
         const existingMoodLogs = await prisma.moodLog.count({
           where: {
             date: {
@@ -190,6 +193,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           });
         }
 
+		// Create new mood log
         const now = new Date();
         const newMoodLog = await prisma.moodLog.create({
           data: {

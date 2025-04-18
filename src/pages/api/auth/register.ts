@@ -20,20 +20,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       finalFirstName = parts[0];
       finalLastName = parts.slice(1).join(' ') || finalFirstName;
     }
-
+	// Validate required fields
     if (!email || !password || (!finalFirstName && !finalLastName)) {
       return res.status(400).json({ error: 'Email, password, and name are required' });
     }
-
+	// Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({ error: 'Invalid email format' });
     }
-
+	// Validate password length
     if (password.length < 6) {
       return res.status(400).json({ error: 'Password must be at least 6 characters long' });
     }
-
+	// Check for existing user
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
@@ -41,15 +41,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (existingUser) {
       return res.status(400).json({ error: 'User already exists' });
     }
-
+	// Verify JWT_SECRET environment variable
     if (!process.env.JWT_SECRET) {
       throw new Error('JWT_SECRET is not defined in environment variables');
     }
-
+	// Hash password with SHA-256
     const hashedPassword = createHash('sha256')
       .update(password + process.env.JWT_SECRET)
       .digest('hex');
-
+	  // Create new user in database with default categories
     const user = await prisma.user.create({
       data: {
         email,

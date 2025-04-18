@@ -127,7 +127,6 @@ export default withAuth(async function handler(req: AuthenticatedRequest, res: N
     );
 
     // --- Historical Weeks Query ---
-    // Note: Using fully qualified table names – update these if your actual schema differs.
 const historicalWeeks = await prisma.$queryRaw(Prisma.sql`
   WITH weeks AS (
     SELECT 

@@ -2,6 +2,7 @@ import { NextApiResponse } from 'next'
 import prisma from '@/lib/prisma'
 import { withAuth, AuthenticatedRequest } from '@/lib/middleware'
 
+// Main API handler function for clearing transactions
 async function handler(
   req: AuthenticatedRequest,
   res: NextApiResponse
@@ -35,4 +36,5 @@ async function handler(
   }
 }
 
+// Wrap handler with authentication middleware
 export default withAuth(handler)

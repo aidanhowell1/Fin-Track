@@ -2,6 +2,7 @@ import { NextApiResponse } from 'next'
 import prisma from '@/lib/prisma'
 import { withAuth, AuthenticatedRequest } from '@/lib/middleware'
 
+// Main API handler function for tags endpoint
 async function handler(
   req: AuthenticatedRequest,
   res: NextApiResponse
@@ -11,6 +12,7 @@ async function handler(
   }
 
   try {
+	// Handle different HTTP methods
     switch (req.method) {
       case 'GET':
         const tags = await prisma.tag.findMany({
@@ -37,10 +39,12 @@ async function handler(
           },
         })
 
+		// Return existing tag if found
         if (existingTag) {
-          return res.status(200).json(existingTag) // Return existing tag if found
+          return res.status(200).json(existingTag) 
         }
 
+		// Create new tag for the user
         const newTag = await prisma.tag.create({
           data: {
             name,
@@ -61,4 +65,5 @@ async function handler(
   }
 }
 
+// Wrap handler with authentication middleware
 export default withAuth(handler)

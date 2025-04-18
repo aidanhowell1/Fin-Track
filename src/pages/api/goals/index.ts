@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/lib/prisma'
 
+// Main API handler function for goals endpoint
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     switch (req.method) {
@@ -18,6 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 }
 
+// Function to handle GET requests for fetching goals
 async function getGoals(req: NextApiRequest, res: NextApiResponse) {
   try {
     // Get all goals without user filtering for now
@@ -42,6 +44,7 @@ async function getGoals(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
+// Function to handle POST requests for creating new goals
 async function createGoal(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { 

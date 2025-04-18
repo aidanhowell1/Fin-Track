@@ -41,6 +41,7 @@ interface TransactionFilters {
   maxAmount?: number
 }
 
+// Main API handler function for transactions endpoint
 async function handler(
   req: AuthenticatedRequest,
   res: NextApiResponse
@@ -310,6 +311,7 @@ async function handler(
             })
           }
 
+		  // Create new transaction
           const newTransaction = await prisma.transaction.create({
             data: {
               amount: new Decimal(finalAmount),
@@ -334,6 +336,7 @@ async function handler(
             },
           })
 
+		  // Format response
           const formattedTransaction = {
             id: newTransaction.id,
             amount: Number(newTransaction.amount),
@@ -369,4 +372,5 @@ async function handler(
   }
 }
 
+// Wrap handler with authentication middleware
 export default withAuth(handler)

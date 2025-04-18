@@ -273,4 +273,5 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   }
 }
 
+// Wrap handler with authentication middleware
 export default withAuth(handler)

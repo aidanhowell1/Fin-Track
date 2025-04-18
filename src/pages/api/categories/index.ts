@@ -2,6 +2,7 @@ import { NextApiResponse } from 'next'
 import prisma from '@/lib/prisma'
 import { withAuth, AuthenticatedRequest } from '@/lib/middleware'
 
+// Define default categories with names and icons
 const defaultCategories = [
   { name: 'Groceries', icon: '🛒' },
   { name: 'Rent', icon: '🏠' },
@@ -15,6 +16,7 @@ const defaultCategories = [
   { name: 'Other', icon: '📦' },
 ]
 
+// Main API handler for category operations
 async function handler(
   req: AuthenticatedRequest,
   res: NextApiResponse
@@ -51,12 +53,14 @@ async function handler(
           },
         }))
       }
-
+	  
+	  // Return existing categories
       return res.status(200).json(categories)
     } catch (error) {
       console.error('Failed to fetch categories:', error)
       return res.status(500).json({ error: 'Failed to fetch categories' })
     }
+	// Handle POST request to create a new category
   } else if (req.method === 'POST') {
     try {
       const { name } = req.body
@@ -83,5 +87,5 @@ async function handler(
 
   return res.status(405).json({ error: 'Method not allowed' })
 }
-
+// Wrap handler with authentication middleware
 export default withAuth(handler)

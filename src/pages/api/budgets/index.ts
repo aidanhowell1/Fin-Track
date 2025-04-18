@@ -2,6 +2,7 @@ import { NextApiResponse } from 'next'
 import prisma from '@/lib/prisma'
 import { withAuth, AuthenticatedRequest } from '@/lib/middleware'
 
+// Calculate spending and metrics for a specific budget
 async function calculateBudgetSpending(budget: any, userId: string) {
   if (!budget || !userId) {
     console.error('Invalid budget or userId in calculateBudgetSpending')
@@ -17,6 +18,7 @@ async function calculateBudgetSpending(budget: any, userId: string) {
       return null
     }
 
+	// Aggregate expense transactions within date range
     const transactions = await prisma.transaction.aggregate({
       where: {
         userId: userId,
@@ -32,7 +34,8 @@ async function calculateBudgetSpending(budget: any, userId: string) {
         amount: true,
       },
     })
-
+	
+	// Calculate spending metrics
     const currentSpending = Math.abs(Number(transactions._sum.amount || 0))
     const monthlyLimit = Number(budget.monthlyLimit)
     const percentageUsed = monthlyLimit > 0 ? (currentSpending / monthlyLimit) * 100 : 0
@@ -49,6 +52,7 @@ async function calculateBudgetSpending(budget: any, userId: string) {
   }
 }
 
+// Check for overlapping budgets for the same category and period
 async function checkExistingBudget(userId: string, categoryId: string, startDate: Date, endDate: Date, periodType: string) {
   const existingBudget = await prisma.budget.findFirst({
     where: {
@@ -69,6 +73,7 @@ async function checkExistingBudget(userId: string, categoryId: string, startDate
   return existingBudget
 }
 
+// Main API handler for budget operations
 async function handler(
   req: AuthenticatedRequest,
   res: NextApiResponse
@@ -225,5 +230,5 @@ async function handler(
     })
   }
 }
-
+// Wrap handler with authentication middleware
 export default withAuth(handler)
