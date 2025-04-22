@@ -191,11 +191,11 @@ export default function Home() {
   // Handles tab changes and navigates to budgets or analytics if selected
   const handleTabChange = (value: string) => {
     setActiveTab(value)
-    if (value === 'budgets') {
-      router.push('/budgets')
-    } else if (value === 'analytics') {
-      router.push('/analytics')
-    }
+    //if (value === 'budgets') {
+     // router.push('/budgets')
+ //   } else if (value === 'analytics') {
+      //router.push('/analytics')
+   // }
   }
 
   return (
@@ -381,7 +381,7 @@ export default function Home() {
                 </div>
               </ScrollArea>
             </TabsContent>
-			{/* Placeholder with a button to navigate to the budgets page 
+			{/* Placeholder with a button to navigate to the budgets page*/}
             <TabsContent value="budgets">
               <div className="h-[400px] w-full rounded-md border p-4 flex items-center justify-center">
                 <Link href="/budgets">
@@ -397,7 +397,7 @@ export default function Home() {
                 </Link>
               </div>
             </TabsContent>
-	    */}
+	   
           </Tabs>
         </Card>
       </div>
