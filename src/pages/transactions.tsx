@@ -105,7 +105,7 @@ const expenseCategories = [
 // Interface for transaction data
 interface Transaction {
   id: string
-  date: string | Date
+  date: Date
   description: string
   category: {
     id: string
@@ -113,7 +113,8 @@ interface Transaction {
   }
   amount: number
   type: 'INCOME' | 'EXPENSE'
-  tags?: { id: string; name: string }[]
+  tags: { id: string; name: string }[]
+  notes?: string
 }
 
 // Main Transactions component
@@ -228,6 +229,10 @@ export default function Transactions() {
         throw new Error(errorData.error || 'Failed to load transactions')
       }
       const data = await response.json()
+	  const transactions = data.transactions.map((t: Transaction) => ({
+	          ...t,
+	          date: new Date(t.date),
+	  }))
       setTransactions(data.transactions)
       setTotalPages(data.pagination.pages)
       setCurrentPage(data.pagination.currentPage)
@@ -244,10 +249,15 @@ export default function Transactions() {
       setLoading(false)
     }
   }
-
+  // Fetch transactions on mount
   useEffect(() => {
-    fetchTransactions()
+  	fetchTransactions()
   }, [])
+
+	// Re-fetch transactions when sortConfig or currentPage changes
+  useEffect(() => {
+    fetchTransactions(currentPage, {}, sortConfig)
+  }, [sortConfig, currentPage])
 
   // Handles filter changes and resets to first page
   const handleFilterChange = (filters: any) => {
@@ -343,14 +353,14 @@ export default function Transactions() {
       try {
         const response = await fetchWithAuth(url, {
           method,
-          body: {
+          body: JSON.stringify({
             amount: amount,
             type: formData.type,
             category: formData.category,
             date: date.toISOString(),
             description: formData.description.trim(),
             tags: formData.tags?.filter(tag => tag.trim()),
-          },
+          }),
         })
 
         // Dismiss loading toast
@@ -703,7 +713,7 @@ export default function Transactions() {
                 <TableBody>
 				{/* Shows skeleton row*/}
                   {loading ? (
-                    Array.from({ length: 5 }).map((_, index) => (
+                    [...Array(5).keys()].map((_, index) => (
                       <TableRow key={index}>
                         <TableCell><Skeleton className="h-6 w-24" /></TableCell>
                         <TableCell><Skeleton className="h-6 w-full" /></TableCell>
