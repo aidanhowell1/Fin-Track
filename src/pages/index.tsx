@@ -325,8 +325,8 @@ export default function Home() {
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
             <TabsList className="w-full justify-start">
               <TabsTrigger value="transactions">Transactions</TabsTrigger>
-              <TabsTrigger value="budgets">Budgets</TabsTrigger>
-              <TabsTrigger value="analytics">Analytics</TabsTrigger>
+		    {/* <TabsTrigger value="budgets">Budgets</TabsTrigger>
+              <TabsTrigger value="analytics">Analytics</TabsTrigger> */}
             </TabsList>
             <TabsContent value="transactions">
               <ScrollArea className="h-[400px] w-full rounded-md border p-4">
@@ -381,7 +381,7 @@ export default function Home() {
                 </div>
               </ScrollArea>
             </TabsContent>
-			{/* Placeholder with a button to navigate to the budgets page */}
+			{/* Placeholder with a button to navigate to the budgets page 
             <TabsContent value="budgets">
               <div className="h-[400px] w-full rounded-md border p-4 flex items-center justify-center">
                 <Link href="/budgets">
@@ -389,7 +389,7 @@ export default function Home() {
                 </Link>
               </div>
             </TabsContent>
-			{/* Placeholder with a button to navigate to the analytics page */}
+			
             <TabsContent value="analytics">
               <div className="h-[400px] w-full rounded-md border p-4 flex items-center justify-center">
                 <Link href="/analytics">
@@ -397,6 +397,7 @@ export default function Home() {
                 </Link>
               </div>
             </TabsContent>
+	    */}
           </Tabs>
         </Card>
       </div>
