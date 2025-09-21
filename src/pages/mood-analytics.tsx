@@ -1,5 +1,4 @@
 import { useEffect, useState, Component, ReactNode } from 'react';
-import { useRouter } from 'next/router';
 import { Layout } from '@/components/Layout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -101,13 +100,8 @@ const formatDate = (dateStr: string) => {
     }).format(date);
   }
 };
-<<<<<<< HEAD
 // Custom tooltip component for mood trend chart
-const CustomTooltip = ({ active, payload, label }: any) => {
-=======
-
 const CustomTooltip = ({ active, payload }: any) => {
->>>>>>> 2e68df1285d6738c21a927916d357a399b5fa82c
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     const formattedDate = formatDate(data.date);
@@ -165,13 +159,7 @@ class MoodAnalyticsErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoun
     return this.props.children;
   }
 }
-<<<<<<< HEAD
-// Main MoodAnalytics component
-=======
-
->>>>>>> 2e68df1285d6738c21a927916d357a399b5fa82c
 const MoodAnalytics = () => {
-  const router = useRouter();
   const [showInfoDialog, setShowInfoDialog] = useState(false);
   const [showClearButton, setShowClearButton] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -287,30 +275,12 @@ const MoodAnalytics = () => {
       if (highestSpendingMood) {
         insights.push(`You tend to spend more when you're feeling ${highestSpendingMood.replace('_', ' ').toLowerCase()}`);
       }
-<<<<<<< HEAD
-
-      // Highest spending mood
-      const spendingByMood = analyticsData.spendingCorrelation;
-      if (Object.keys(spendingByMood).length > 0) {
-        const [highestSpendingMood] = Object.entries(spendingByMood)
-          .sort((a, b) => (b[1].totalSpent / b[1].count) - (a[1].totalSpent / a[1].count))[0] || [''];
-        if (highestSpendingMood) {
-          insights.push(`You tend to spend more when you're feeling ${highestSpendingMood.replace('_', ' ').toLowerCase()}`);
-        }
-      }
-
-      // Avg mood intensity
-      const recentMoods = analyticsData.timelineData.slice(-7);
-      const averageMoodIntensity = recentMoods.reduce((sum, item) => sum + item.intensity, 0) / recentMoods.length;
-      insights.push(`Your average mood intensity over the past week is ${averageMoodIntensity.toFixed(1)} out of 10`);
-	  
-=======
     }
     // Average mood intensity over recent 7 days
     const recentMoods = analyticsData.timelineData.slice(-7);
-    const averageMoodIntensity = recentMoods.reduce((sum, item) => sum + item.intensity, 0) / (recentMoods.length || 1);
+    const averageMoodIntensity =
+      recentMoods.reduce((sum, item) => sum + item.intensity, 0) / (recentMoods.length || 1);
     insights.push(`Your average mood intensity over the past week is ${averageMoodIntensity.toFixed(1)} out of 10`);
->>>>>>> 2e68df1285d6738c21a927916d357a399b5fa82c
     return insights;
   };
 

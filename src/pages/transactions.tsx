@@ -229,11 +229,11 @@ export default function Transactions() {
         throw new Error(errorData.error || 'Failed to load transactions')
       }
       const data = await response.json()
-	  const transactions = data.transactions.map((t: Transaction) => ({
-	          ...t,
-	          date: new Date(t.date),
-	  }))
-      setTransactions(data.transactions)
+      const transformedTransactions: Transaction[] = data.transactions.map((t: Transaction) => ({
+        ...t,
+        date: new Date(t.date),
+      }))
+      setTransactions(transformedTransactions)
       setTotalPages(data.pagination.pages)
       setCurrentPage(data.pagination.currentPage)
       setStats(data.stats)
@@ -505,7 +505,6 @@ export default function Transactions() {
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-col gap-4 md:flex-row md:items-center">
             <h1 className="text-3xl font-bold tracking-tight">Transactions</h1>
-			{/* Shows total income, expenses, and transaction count*/}
 			{!loading && !error && (
               <DashboardStats
                 totalIncome={stats.totalIncome}
@@ -515,7 +514,6 @@ export default function Transactions() {
             )}
           </div>
           <div className="flex gap-2">
-		  {/* Button to open add transaction modal */}
             <Dialog open={isAddingTransaction} onOpenChange={setIsAddingTransaction}>
               <DialogTrigger asChild>
                 <Button>
@@ -528,7 +526,6 @@ export default function Transactions() {
                   <DialogTitle>Add New Transaction</DialogTitle>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
-				{/* Input for transaction amount */}
                   <div className="grid gap-2">
                     <Label htmlFor="amount">Amount</Label>
                     <Input
@@ -541,7 +538,6 @@ export default function Transactions() {
                       className="col-span-3"
                     />
                   </div>
-				  {/* Dropdown for transaction type */}
                   <div className="grid gap-2">
                     <Label htmlFor="type">Type</Label>
                     <Select
@@ -557,7 +553,6 @@ export default function Transactions() {
                       </SelectContent>
                     </Select>
                   </div>
-				  {/* Dropdown for transaction category */}
                   <div className="grid gap-2">
                     <Label htmlFor="category">Category</Label>
                     <Select
@@ -579,7 +574,6 @@ export default function Transactions() {
                       </SelectContent>
                     </Select>
                   </div>
-				  {/* Calendar for selecting transaction date */}
                   <div className="grid gap-2">
                     <Label>Date</Label>
                     <Popover>
@@ -605,7 +599,6 @@ export default function Transactions() {
                       </PopoverContent>
                     </Popover>
                   </div>
-				  {/* Input for transaction description */}
                   <div className="grid gap-2">
                     <Label htmlFor="description">Description</Label>
                     <Input 
@@ -625,13 +618,11 @@ export default function Transactions() {
           </div>
         </div>
 
-		{/* Component for filtering transactions */}
         <TransactionFilters
           onFilterChange={handleFilterChange}
           categories={[...incomeCategories, ...expenseCategories]}
         />
 
-		{/* Displays transactions in a table */}
         <Card>
           {error ? (
             <div className="p-8 text-center space-y-4">
@@ -678,7 +669,6 @@ export default function Transactions() {
               <Table>
                 <TableHeader>
                   <TableRow>
-				  {/* Sortable headers for date, description, and amount */}
                     <TableHead 
                       className="w-[100px] cursor-pointer"
                       onClick={() => handleSort('date')}
@@ -711,7 +701,6 @@ export default function Transactions() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-				{/* Shows skeleton row*/}
                   {loading ? (
                     [...Array(5).keys()].map((_, index) => (
                       <TableRow key={index}>
@@ -728,7 +717,6 @@ export default function Transactions() {
                         No transactions found
                       </TableCell>
                     </TableRow>
-					{/* Lists transactions with actions*/}
                   ) : (
                     transactions.map((transaction) => {
                       const Icon = categoryIcons[transaction.category.name] || DollarSign
@@ -791,7 +779,6 @@ export default function Transactions() {
                   )}
                 </TableBody>
               </Table>
-			  {/* Navigation for table pages*/}
               {!loading && transactions.length > 0 && (
                 <div className="flex items-center justify-center space-x-2 py-4">
                   <Button
@@ -820,7 +807,6 @@ export default function Transactions() {
         </Card>
       </div>
 
-	  {/* Confirm transaction deletion */}
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -840,7 +826,6 @@ export default function Transactions() {
         </AlertDialogContent>
       </AlertDialog>
 
-	  {/* Confirm clearing all transactions */}
       <AlertDialog open={clearConfirmOpen} onOpenChange={setClearConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -869,7 +854,6 @@ export default function Transactions() {
         </AlertDialogContent>
       </AlertDialog>
 
-	  {/* Edit existing transactions */}
       <Dialog open={isEditingTransaction} onOpenChange={setIsEditingTransaction}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>

@@ -86,14 +86,11 @@ const MoodsPage = () => {
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-		{/* Two-column grid for MoodLogger and recent moods card on medium screens */}
         <div className="grid gap-6 md:grid-cols-2">
           <MoodLogger 
             onMoodLog={handleMoodLog} 
             dailyEntriesCount={dailyEntriesCount}
           />
-		  
-		  {/* Displays the five most recent mood entries */}
           <Card className="p-6">
             <h2 className="text-xl font-semibold mb-4">Recent Moods</h2>
             <div className="space-y-4">
@@ -105,7 +102,6 @@ const MoodsPage = () => {
                     </div>
                   ))}
                 </div>
-				{/* Lists recent moods with details (mood, intensity, notes, date)*/}
               ) : recentMoods.length > 0 ? (
                 recentMoods.map((mood) => (
                   <div key={mood.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -122,7 +118,6 @@ const MoodsPage = () => {
                       {new Date(mood.date).toLocaleDateString()}
                     </div>
                   </div>
-				  {/* Shows message if no moods are logged*/}
                 ))
               ) : (
                 <p className="text-gray-500 text-center">No recent moods logged</p>
