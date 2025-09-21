@@ -23,66 +23,58 @@ import {
 } from 'recharts'
 import { useState, useEffect } from 'react'
 
-	// Analytics page component
+type AnalyticsResponse = {
+  monthlyData: Array<Record<string, unknown>>
+  categoryData: Array<Record<string, unknown> & { color?: string; name: string; value: number }>
+  totals: {
+    income: number
+    expenses: number
+    balance: number
+  }
+}
+
 export default function Analytics() {
-		// State for time period selection
-  	const [period, setPeriod] = useState('6')
-  	const [analyticsData, setAnalyticsData] = useState<{
-    monthlyData: any[];
-    categoryData: any[];
-    totals: {
-      income: number;
-      expenses: number;
-      balance: number;
-    };
-  }>({
+  const [period, setPeriod] = useState('6')
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsResponse>({
     monthlyData: [],
     categoryData: [],
     totals: {
       income: 0,
       expenses: 0,
-      balance: 0
-    }
+      balance: 0,
+    },
   })
-  	// State for loading and error handling
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const router = useRouter()
-	
-  	// Fetch analytics data based on period
+
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
         setLoading(true)
         setError(null)
-			// Get auth token
-		const token = localStorage.getItem('token')
-		if (!token) {
-			console.error('No token found in localStorage');
-		    throw new Error('Authentication required: Please log in');
-		}
-			// Debug log (partial token for security)
-		console.log('Fetching analytics with token:', token.substring(0, 10) + '...'); 
-		const headers: HeadersInit = {
-		          'Content-Type': 'application/json',
-				  'Authorization': `Bearer ${token}`
-		}
-			// Fetch analytics data		
-        const response = await fetch(`/api/analytics?period=${period}`,{
-			headers
-		});
-		
-        if (!response.ok){
-			const errorData = await response.json()
-			console.error('Analytics fetch failed:', errorData);
-			throw new Error(errorData.error || 'Failed to fetch analytics data')
-		} 
-        const data = await response.json()
+
+        const token = localStorage.getItem('token')
+        if (!token) {
+          throw new Error('Authentication required: Please log in')
+        }
+
+        const response = await fetch(`/api/analytics?period=${period}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || 'Failed to fetch analytics data')
+        }
+
+        const data: AnalyticsResponse = await response.json()
         setAnalyticsData(data)
-      } catch (error) {
-		// Handle fetch errors
-        console.error('Error fetching analytics:', error)
-        setError(error instanceof Error ? error.message : 'Failed to load analytics')
+      } catch (err) {
+        console.error('Error fetching analytics:', err)
+        setError(err instanceof Error ? err.message : 'Failed to load analytics')
       } finally {
         setLoading(false)
       }
@@ -91,7 +83,6 @@ export default function Analytics() {
     fetchAnalytics()
   }, [period])
 
-  // Format numbers as USD currency
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -101,22 +92,18 @@ export default function Analytics() {
     }).format(value)
   }
 
-  // Show error state if fetch fails
   if (error) {
     return (
       <Layout>
-        <div className="p-4 text-red-500">
-          Error loading analytics: {error}
-        </div>
+        <div className="p-4 text-red-500">Error loading analytics: {error}</div>
       </Layout>
     )
   }
 
   return (
-	{/* Page header with period selector */}
     <Layout>
       <div className="space-y-8">
-        <div className="flex justify-between items-center">
+        <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
           <Select value={period} onValueChange={setPeriod}>
             <SelectTrigger className="w-[180px]">
@@ -130,7 +117,6 @@ export default function Analytics() {
           </Select>
         </div>
 
-        {/* Summary Cards */}
         <div className="grid gap-4 md:grid-cols-3">
           <Card className="p-6">
             <h3 className="text-sm font-medium text-muted-foreground">Total Income</h3>
@@ -146,20 +132,21 @@ export default function Analytics() {
           </Card>
           <Card className="p-6">
             <h3 className="text-sm font-medium text-muted-foreground">Balance</h3>
-            <p className={`mt-2 text-2xl font-bold ${analyticsData.totals.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <p
+              className={`mt-2 text-2xl font-bold ${
+                analyticsData.totals.balance >= 0 ? 'text-green-600' : 'text-red-600'
+              }`}
+            >
               {formatCurrency(analyticsData.totals.balance)}
             </p>
           </Card>
         </div>
 
-		{/* Line chart for income vs expenses */}
         <div className="grid gap-8 md:grid-cols-2">
           <Card className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Income vs Expenses</h2>
+            <h2 className="mb-4 text-lg font-semibold">Income vs Expenses</h2>
             {loading ? (
-              <div className="h-[300px] flex items-center justify-center">
-                Loading...
-              </div>
+              <div className="flex h-[300px] items-center justify-center">Loading...</div>
             ) : (
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -167,13 +154,10 @@ export default function Analytics() {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
                     <YAxis tickFormatter={formatCurrency} />
-                    <Tooltip 
-                      formatter={formatCurrency}
+                    <Tooltip
+                      formatter={(value: number) => formatCurrency(Number(value))}
                       labelStyle={{ color: 'black' }}
-                      contentStyle={{ 
-                        backgroundColor: 'white',
-                        border: '1px solid #ccc'
-                      }}
+                      contentStyle={{ backgroundColor: 'white', border: '1px solid #ccc' }}
                     />
                     <Legend />
                     <Line
@@ -198,15 +182,12 @@ export default function Analytics() {
             )}
           </Card>
 
-		  {/* Pie chart for expense categories */}
           <Card className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Top Expenses by Category</h2>
+            <h2 className="mb-4 text-lg font-semibold">Top Expenses by Category</h2>
             {loading ? (
-              <div className="h-[300px] flex items-center justify-center">
-                Loading...
-              </div>
+              <div className="flex h-[300px] items-center justify-center">Loading...</div>
             ) : (
-              <div className="flex flex-col h-[300px]">
+              <div className="flex h-[300px] flex-col">
                 <div className="flex-1">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -219,37 +200,29 @@ export default function Analytics() {
                         paddingAngle={5}
                         dataKey="value"
                         nameKey="name"
-                        label={({ name, percent }) => 
-                          `${name} (${(percent * 100).toFixed(0)}%)`
-                        }
-                        labelLine={true}
+                        label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                        labelLine
                       >
-                        {analyticsData.categoryData.map((entry: any, index: number) => (
-                          <Cell key={index} fill={entry.color} />
+                        {analyticsData.categoryData.map((entry, index) => (
+                          <Cell key={index} fill={typeof entry.color === 'string' ? entry.color : '#64748b'} />
                         ))}
                       </Pie>
-                      <Tooltip 
-                        formatter={formatCurrency}
+                      <Tooltip
+                        formatter={(value: number) => formatCurrency(Number(value))}
                         labelStyle={{ color: 'black' }}
-                        contentStyle={{ 
-                          backgroundColor: 'white',
-                          border: '1px solid #ccc'
-                        }}
+                        contentStyle={{ backgroundColor: 'white', border: '1px solid #ccc' }}
                       />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
-				{/* Legend for pie chart */}
-                <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {analyticsData.categoryData.map((category: any, index: number) => (
+                <div className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-3">
+                  {analyticsData.categoryData.map((category, index) => (
                     <div key={index} className="flex items-center gap-2">
                       <div
-                        className="w-3 h-3 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: category.color }}
+                        className="h-3 w-3 flex-shrink-0 rounded-full"
+                        style={{ backgroundColor: typeof category.color === 'string' ? category.color : '#64748b' }}
                       />
-                      <span className="text-sm truncate">
-                        {category.name}
-                      </span>
+                      <span className="truncate text-sm">{category.name}</span>
                     </div>
                   ))}
                 </div>
@@ -257,22 +230,18 @@ export default function Analytics() {
             )}
           </Card>
 
-		  {/* Detailed analysis with tabs */}
-          <Card className="p-6 md:col-span-2">
+          <Card className="md:col-span-2 p-6">
             <Tabs defaultValue="monthly" className="w-full">
-              <div className="flex justify-between items-center mb-4">
+              <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-semibold">Detailed Analysis</h2>
                 <TabsList>
                   <TabsTrigger value="monthly">Monthly</TabsTrigger>
                   <TabsTrigger value="category">By Category</TabsTrigger>
                 </TabsList>
               </div>
-			  {/* Monthly line chart */}
               <TabsContent value="monthly">
                 {loading ? (
-                  <div className="h-[400px] flex items-center justify-center">
-                    Loading...
-                  </div>
+                  <div className="flex h-[400px] items-center justify-center">Loading...</div>
                 ) : (
                   <div className="h-[400px]">
                     <ResponsiveContainer width="100%" height="100%">
@@ -280,13 +249,10 @@ export default function Analytics() {
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="name" />
                         <YAxis tickFormatter={formatCurrency} />
-                        <Tooltip 
-                          formatter={formatCurrency}
+                        <Tooltip
+                          formatter={(value: number) => formatCurrency(Number(value))}
                           labelStyle={{ color: 'black' }}
-                          contentStyle={{ 
-                            backgroundColor: 'white',
-                            border: '1px solid #ccc'
-                          }}
+                          contentStyle={{ backgroundColor: 'white', border: '1px solid #ccc' }}
                         />
                         <Legend />
                         <Line
@@ -310,21 +276,20 @@ export default function Analytics() {
                   </div>
                 )}
               </TabsContent>
-			  {/* Category breakdown */}
               <TabsContent value="category">
                 {loading ? (
-                  <div className="h-[400px] flex items-center justify-center">
-                    Loading...
-                  </div>
+                  <div className="flex h-[400px] items-center justify-center">Loading...</div>
                 ) : (
                   <div className="grid gap-4 md:grid-cols-2">
-                    {analyticsData.categoryData.map((category: any, index: number) => (
+                    {analyticsData.categoryData.map((category, index) => (
                       <Card key={index} className="p-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <div
-                              className="w-4 h-4 rounded-full"
-                              style={{ backgroundColor: category.color }}
+                              className="h-4 w-4 rounded-full"
+                              style={{
+                                backgroundColor: typeof category.color === 'string' ? category.color : '#64748b',
+                              }}
                             />
                             <h3 className="font-medium">{category.name}</h3>
                           </div>

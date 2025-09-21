@@ -1,6 +1,7 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextApiResponse } from 'next';
 import prisma from '@/lib/prisma';
 import { Prisma } from '@prisma/client'; // <-- Added import
+import { withAuth, AuthenticatedRequest } from '@/lib/middleware';
 
 // Helper function to handle errors
 const handleError = (error: any, res: NextApiResponse) => {
@@ -33,12 +34,16 @@ const logError = (error: any, context: string) => {
 };
 
 // Main API handler function for mood logs endpoint
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+
   try {
     switch (req.method) {
       case 'GET': {
         console.log('Fetching mood logs with transactions...');
-        
+
         const { today, tomorrow, sevenDaysAgo, thirtyDaysAgo } = getDateRanges();
 
         // Get today's entries count
@@ -48,6 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               gte: today,
               lt: tomorrow,
             },
+            userId: req.user.id,
           },
         });
 
@@ -57,7 +63,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             date: {
               gte: thirtyDaysAgo,
             },
-            userId: req.user?.id, // Add user filtering if available
+            userId: req.user.id,
           },
           orderBy: {
             date: 'desc',
@@ -80,7 +86,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Get historical weekly data
         const historicalWeeks = await prisma.$queryRaw(Prisma.sql`
           WITH weeks AS (
-            SELECT 
+            SELECT
               date_trunc('week', m.date) as week_start,
               date_trunc('week', m.date) + interval '6 days' as week_end,
               AVG(CAST(m.intensity AS FLOAT)) as avg_mood,
@@ -89,8 +95,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             FROM "fintrack_schema"."mood_logs" m
             LEFT JOIN "fintrack_schema"."transactions" t ON m."transactionId" = t.id
             WHERE m.date >= ${thirtyDaysAgo}
-              AND m."userId" = ${req.user?.id}
-              AND (t.id IS NULL OR t."userId" = ${req.user?.id})
+              AND m."userId" = ${req.user.id}
+              AND (t.id IS NULL OR t."userId" = ${req.user.id})
             GROUP BY date_trunc('week', m.date)
             ORDER BY week_start DESC
             LIMIT 12
@@ -182,6 +188,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               gte: todayStart,
               lt: todayEnd,
             },
+            userId: req.user.id,
           },
         });
 
@@ -204,6 +211,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             date: now,
             createdAt: now,
             updatedAt: now,
+            userId: req.user.id,
           },
         });
 
@@ -216,7 +224,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
       case 'DELETE': {
         console.log('Deleting all mood logs...');
-        await prisma.moodLog.deleteMany({});
+        await prisma.moodLog.deleteMany({
+          where: { userId: req.user.id },
+        });
         console.log('Successfully deleted all mood logs');
         return res.status(200).json({ message: 'All mood logs deleted successfully' });
       }
@@ -227,9 +237,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   } catch (error) {
     console.error('Mood API Error:', error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: 'Internal Server Error',
       message: error instanceof Error ? error.message : 'Unknown error occurred'
     });
   }
 }
+
+export default withAuth(handler);
