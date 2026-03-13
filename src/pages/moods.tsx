@@ -105,7 +105,6 @@ const MoodsPage = () => {
                     </div>
                   ))}
                 </div>
-				{/* Lists recent moods with details (mood, intensity, notes, date)*/}
               ) : recentMoods.length > 0 ? (
                 recentMoods.map((mood) => (
                   <div key={mood.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -122,7 +121,6 @@ const MoodsPage = () => {
                       {new Date(mood.date).toLocaleDateString()}
                     </div>
                   </div>
-				  {/* Shows message if no moods are logged*/}
                 ))
               ) : (
                 <p className="text-gray-500 text-center">No recent moods logged</p>

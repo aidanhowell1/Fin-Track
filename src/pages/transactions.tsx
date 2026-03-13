@@ -728,7 +728,6 @@ export default function Transactions() {
                         No transactions found
                       </TableCell>
                     </TableRow>
-					{/* Lists transactions with actions*/}
                   ) : (
                     transactions.map((transaction) => {
                       const Icon = categoryIcons[transaction.category.name] || DollarSign
