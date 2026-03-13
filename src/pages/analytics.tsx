@@ -22,6 +22,7 @@ import {
   Legend,
 } from 'recharts'
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/router'
 
 	// Analytics page component
 export default function Analytics() {
@@ -113,8 +114,8 @@ export default function Analytics() {
   }
 
   return (
-	{/* Page header with period selector */}
     <Layout>
+      {/* Page header with period selector */}
       <div className="space-y-8">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
